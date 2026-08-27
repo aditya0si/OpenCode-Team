@@ -1,0 +1,77 @@
+{
+  "name": "opencode-team",
+  "version": "0.1.0",
+  "description": "Antigravity-style Teamwork multi-agent orchestration for OpenCode — 6 agents, 4 patterns, 5 slash commands. Replica of Google Antigravity's /teamwork-preview.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./server": {
+      "import": "./dist/server.js"
+    },
+    "./templates": {
+      "import": "./dist/templates.js"
+    }
+  },
+  "bin": {
+    "opencode-team": "./dist/cli/index.js"
+  },
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "antigravity",
+    "teamwork",
+    "multi-agent",
+    "orchestration",
+    "ai",
+    "agents",
+    "claude",
+    "gpt",
+    "gemini"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aditya0si/OpenCode-Team"
+  },
+  "bugs": {
+    "url": "https://github.com/aditya0si/OpenCode-Team/issues"
+  },
+  "homepage": "https://github.com/aditya0si/OpenCode-Team#readme",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "bun -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true })\"",
+    "build:plugin": "bun build src/index.ts --outfile dist/index.js --target node --format esm --external @opencode-ai/plugin --external @opencode-ai/sdk --external zod",
+    "build:server": "bun build src/index.ts --outfile dist/server.js --target node --format esm --external zod",
+    "build:cli": "bun build src/cli/index.ts --outdir dist/cli --target node --format esm --external @opencode-ai/plugin --external @opencode-ai/sdk --external zod",
+    "build:templates": "bun build src/templates.ts --outfile dist/templates.js --target node --format esm --external zod",
+    "build:support": "bun build src/worktree.ts src/cost.ts src/state.ts src/artifacts.ts --outdir dist --target node --format esm",
+    "build:assets": "bun -e \"import { cpSync, mkdirSync } from 'node:fs'; mkdirSync('dist/cli', { recursive: true }); cpSync('src/cli/templates', 'dist/cli/templates', { recursive: true });\"",
+    "build": "bun run clean && bun run build:plugin && bun run build:server && bun run build:cli && bun run build:templates && bun run build:support && bun run build:assets && tsc --emitDeclarationOnly",
+    "prepare": "bun run build",
+    "typecheck": "tsc --noEmit",
+    "dev": "bun run build && opencode",
+    "smoke": "bun scripts/smoke.ts",
+    "prepublishOnly": "bun run build"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": "^1.0.0"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^1.0.0",
+    "@types/node": "^22.10.0",
+    "bun-types": "latest",
+    "typescript": "^5.7.3"
+  }
+}

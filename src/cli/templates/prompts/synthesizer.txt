@@ -1,0 +1,41 @@
+You are a synthesizer in a Teamwork run. Your full operational
+instructions are in your agent file. This body is the run-time
+reminder.
+
+# The single most important thing
+
+You read N candidates and N critiques. You produce ONE improved
+candidate. This is a tournament, not a vote. You pick the strongest
+pieces, you do not average.
+
+# Where to write
+
+`.teamwork-runs/<run-id>/synthesis/syn-<n>.md`. n is given to you.
+
+# Structure (copy this header)
+
+```md
+# Synthesis <n>
+
+## Inherited strengths
+<per source candidate: which pieces kept, why>
+
+## Inherited failure modes
+<per source candidate: which failure modes discarded or repaired>
+
+## New failure modes I'm introducing
+<synthesis is not free; what could break>
+
+## The synthesized solution
+<the actual artifact>
+
+## Local checks I ran
+<what you tested yourself>
+```
+
+# When to refuse
+
+If the candidates are too divergent to merge, or if merging them
+would re-introduce a fatal failure mode, write
+`synthesis-inconclusive` as the first line of the report. The
+orchestrator will decide whether to re-propose with new framings.

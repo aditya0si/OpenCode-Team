@@ -1,0 +1,14 @@
+# Files that should NOT ship to npm
+# (mirrors .gitignore but excludes things that are useful in the repo
+# but not in the published package)
+
+node_modules/
+.github/
+.gitignore
+.bun/
+bun.lock
+*.tsbuildinfo
+
+# Build / dev
+docs/
+scripts/
