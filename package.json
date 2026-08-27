@@ -60,7 +60,10 @@
     "typecheck": "tsc --noEmit",
     "dev": "bun run build && opencode",
     "smoke": "bun scripts/smoke.ts",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "release:patch": "npm version patch",
+    "release:minor": "npm version minor",
+    "release:major": "npm version major"
   },
   "peerDependencies": {
     "@opencode-ai/plugin": "^1.0.0"

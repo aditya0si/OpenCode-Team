@@ -88,9 +88,25 @@ relies on these.
 ## Releases
 
 ```bash
-# Tag a release (CI will publish to npm)
-git tag v0.1.0
-git push --tags
+# 1. One-time: log in to npm (creates ~/.npmrc with auth token)
+npm login
+
+# 2. Bump version
+bun run release:patch   # or release:minor, release:major
+
+# 3. Push tag (triggers GitHub Actions to publish to npm)
+git push --follow-tags
 ```
 
-Publishing requires npm login. See `.github/workflows/release.yml`.
+The release workflow at `.github/workflows/release.yml` builds the
+package, verifies the artifact, and publishes to npm with
+provenance. It requires `NPM_TOKEN` to be set in the repo's GitHub
+Secrets — see https://docs.npmjs.com/creating-and-viewing-access-tokens
+for creating one.
+
+For a manual publish (no CI):
+
+```bash
+bun run build
+npm publish --provenance --access public
+```
