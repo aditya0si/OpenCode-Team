@@ -4,21 +4,6 @@
   "description": "Antigravity-style Teamwork multi-agent orchestration for OpenCode — 10 agents, 6 patterns, 7 slash commands. Replica of Google Antigravity's /teamwork-preview.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./server": {
-      "import": "./dist/server.js"
-    },
-    "./templates": {
-      "import": "./dist/templates.js"
-    }
-  },
-  "bin": {
-    "opencode-teamwork": "./dist/cli/index.js"
-  },
   "type": "module",
   "license": "MIT",
   "keywords": [
@@ -34,14 +19,19 @@
     "gpt",
     "gemini"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/aditya0si/OpenCode-Team"
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./server": {
+      "import": "./dist/server.js"
+    },
+    "./templates": {
+      "import": "./dist/templates.js"
+    }
   },
-  "bugs": {
-    "url": "https://github.com/aditya0si/OpenCode-Team/issues"
-  },
-  "homepage": "https://github.com/aditya0si/OpenCode-Team#readme",
+  "bin": "./dist/cli/index.js",
   "files": [
     "dist",
     "README.md",
@@ -76,5 +66,13 @@
     "@types/node": "^22.10.0",
     "bun-types": "latest",
     "typescript": "^5.7.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aditya0si/OpenCode-Team"
+  },
+  "bugs": {
+    "url": "https://github.com/aditya0si/OpenCode-Team/issues"
+  },
+  "homepage": "https://github.com/aditya0si/OpenCode-Team#readme"
 }
