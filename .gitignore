@@ -42,6 +42,8 @@ coverage/
 # Agent run artifacts (matches the conventions used in similar plugins)
 .opencode/agent-runs/
 .teamwork-runs/
+.agents/
+ORIGINAL_REQUEST.md
 
 # Test scratch dirs
 tmp-team-test-*/

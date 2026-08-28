@@ -57,15 +57,20 @@ class FakeOutput extends Writable {
 // verify the output. ────────────────────────────────────────────────
 
 import { spawn } from "bun";
-import { existsSync, rmSync, readFileSync } from "node:fs";
+import { existsSync, rmSync, readFileSync, mkdtempSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 
-const distCli = "C:/Users/oliad/Desktop/opencodeteam/dist/cli/index.js";
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, "..");
+const distCli = join(ROOT, "dist", "cli", "index.js");
 
 async function testUserAnswersN() {
   console.log("[8] User answers 'n' to y/n → install aborts, no file written");
 
-  const TMP = `/tmp/opencode-teamwork-no-${Date.now()}`;
-  const CFG = `${TMP}/opencode.json`;
+  const TMP = mkdtempSync(join(tmpdir(), "opencode-teamwork-no-"));
+  const CFG = join(TMP, "opencode.json");
   try { rmSync(CFG, { force: true }); } catch {}
 
   // Spawn the CLI with stdin piped (non-TTY → will auto-proceed).
