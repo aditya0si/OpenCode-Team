@@ -2,7 +2,7 @@
  * Smoke test for opencode-team.
  *
  * Runs the installer against a temp HOME, verifies the resulting
- * opencode.json is well-formed and has all 6 agents, and that the
+ * opencode.json is well-formed and has all 10 agents, and that the
  * plugin entry can be required without throwing.
  *
  * Usage: bun scripts/smoke.ts
@@ -26,15 +26,18 @@ const fakeHome = mkdtempSync(join(tmpdir(), "opencode-team-smoke-"));
 const cfgDir = join(fakeHome, ".config", "opencode");
 const cfgPath = join(cfgDir, "opencode.json");
 
-// ─── 1. Fresh install with --preset team ──────────────────────────────
-console.log("\n[1] Fresh install with --preset team");
+// ─── 1. Fresh install with --preset team --yes ───────────────────────
+console.log("\n[1] Fresh install with --preset team --yes");
 {
-  const r = spawnSync("node", [distCli, "install", "--preset", "team", "--config", cfgPath], {
+  const r = spawnSync("node", [distCli, "install", "--preset", "team", "--yes", "--config", cfgPath], {
     encoding: "utf-8",
     env: { ...process.env, HOME: fakeHome, USERPROFILE: fakeHome, OPENCODE_CONFIG_DIR: cfgDir },
   });
-  if (r.status !== 0) fail(`install exited ${r.status}\n${r.stdout}\n${r.stderr}`);
-  ok("install --preset team exited 0");
+  if (r.status !== 0) fail(`install exited ${r.status}\nstdout:\n${r.stdout}\nstderr:\n${r.stderr}`);
+  // The CLI should now print a confirmation prompt + a y/n line in
+  // the log. Make sure "Proceeding" appears (signals the gate ran).
+  if (!r.stdout.includes("Proceeding")) fail("No 'Proceeding' line in install log — confirmation gate may be missing");
+  ok("install --preset team --yes exited 0 with confirmation gate");
 }
 
 if (!existsSync(cfgPath)) fail(`Config not written: ${cfgPath}`);
@@ -62,18 +65,21 @@ for (const role of expectedRoles) {
   ok(`role ${role} -> ${cfg.agent[role].model}`);
 }
 
-// ─── 2. Re-run is idempotent (deep-merge, not overwrite) ──────────────
+// ─── 2. Re-run preserves existing config (deep-merge) ────────────────
 console.log("\n[2] Re-run preserves existing config");
 {
   // Add a custom setting
   cfg.custom = { mine: true };
   writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
 
-  const r = spawnSync("node", [distCli, "install", "--preset", "anthropic", "--config", cfgPath], {
+  const r = spawnSync("node", [distCli, "install", "--preset", "anthropic", "--yes", "--config", cfgPath], {
     encoding: "utf-8",
     env: { ...process.env, HOME: fakeHome, USERPROFILE: fakeHome, OPENCODE_CONFIG_DIR: cfgDir },
   });
-  if (r.status !== 0) fail(`re-install exited ${r.status}\n${r.stderr}`);
+  if (r.status !== 0) fail(`re-install exited ${r.status}\nstdout:\n${r.stdout}\nstderr:\n${r.stderr}`);
+  // Should show a diff preview line
+  if (!r.stdout.includes("Changes that will be made")) fail("No diff preview in re-install log");
+  ok("Diff preview shown");
   const re = JSON.parse(readFileSync(cfgPath, "utf-8"));
   if (re.custom?.mine !== true) fail("Custom config got overwritten");
   ok("Existing custom config preserved");
@@ -81,14 +87,16 @@ console.log("\n[2] Re-run preserves existing config");
   else fail(`Plugin list grew: ${re.plugin}`);
 }
 
-// ─── 3. Uninstall removes plugin and roles ────────────────────────────
-console.log("\n[3] Uninstall");
+// ─── 3. Uninstall with --yes removes plugin and roles ─────────────────
+console.log("\n[3] Uninstall (--yes)");
 {
-  const r = spawnSync("node", [distCli, "uninstall", "--config", cfgPath], {
+  const r = spawnSync("node", [distCli, "uninstall", "--yes", "--config", cfgPath], {
     encoding: "utf-8",
     env: { ...process.env, HOME: fakeHome, USERPROFILE: fakeHome, OPENCODE_CONFIG_DIR: cfgDir },
   });
-  if (r.status !== 0) fail(`uninstall exited ${r.status}\n${r.stderr}`);
+  if (r.status !== 0) fail(`uninstall exited ${r.status}\nstdout:\n${r.stdout}\nstderr:\n${r.stderr}`);
+  if (!r.stdout.includes("Changes that will be made")) fail("No diff preview in uninstall log");
+  ok("Diff preview shown");
   const after = JSON.parse(readFileSync(cfgPath, "utf-8"));
   if (Array.isArray(after.plugin) && after.plugin.includes("opencode-team@latest"))
     fail("Plugin still listed after uninstall");
@@ -112,8 +120,23 @@ console.log("\n[4] Doctor");
   ok("Doctor correctly reports no config (exit != 0)");
 }
 
-// ─── 5. Plugin entry is importable ────────────────────────────────────
-console.log("\n[5] Plugin entry import");
+// ─── 5. --dry-run prints but does NOT write ──────────────────────────
+console.log("\n[5] --dry-run never writes");
+{
+  const before = existsSync(cfgPath);
+  const r = spawnSync("node", [distCli, "install", "--preset", "google", "--dry-run", "--config", cfgPath], {
+    encoding: "utf-8",
+    env: { ...process.env, HOME: fakeHome, USERPROFILE: fakeHome, OPENCODE_CONFIG_DIR: cfgDir },
+  });
+  if (r.status !== 0) fail(`--dry-run exited ${r.status}\nstderr:\n${r.stderr}`);
+  if (!r.stdout.includes("Would write to")) fail("No 'Would write to' in --dry-run output");
+  ok("--dry-run prints the would-be config");
+  if (existsSync(cfgPath) !== before) fail("--dry-run wrote to disk!");
+  ok("--dry-run did not write to disk");
+}
+
+// ─── 6. Plugin entry is importable ────────────────────────────────────
+console.log("\n[6] Plugin entry import");
 {
   const distPlugin = join(ROOT, "dist", "index.js");
   if (!existsSync(distPlugin)) fail(`No ${distPlugin}`);
