@@ -4,6 +4,36 @@ All notable changes to opencode-team are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] — 2026-08-28
+
+CLI UX fix.
+
+### Fixed
+- **CLI now asks before writing.** `opencode-team install` and
+  `uninstall` previously wrote to `~/.config/opencode/opencode.json`
+  without confirmation. Both now show a diff preview of what will
+  change, then prompt `Write this config? (Y/n)` (install, default
+  Y) or `Remove opencode-team? (y/N)` (uninstall, default N).
+- **New `--yes` / `-y` flag** for CI / scripts. Skips all prompts;
+  piped stdin also auto-proceeds.
+- **New `--dry-run` flag** (alias `--print`): prints the would-be
+  config indented and prefixed with `# Would write to`, then exits
+  without touching disk.
+- **`--reset` now warns before overwriting** instead of silently
+  clobbering.
+- **Every prompt honors `q` / `quit` / `exit`** to abort cleanly
+  with `Aborted. No changes made.` No more `process.exit(1)` on
+  invalid input — re-prompt instead.
+- The preset picker now shows `q. quit` as an explicit row.
+- Per-role model picker accepts `q` to abort mid-way.
+- Help text (`--help`) updated with all new flags.
+
+### Added
+- `scripts/interactive-test.ts` — verifies the `--yes` and
+  `--dry-run` flows.
+- Smoke test expanded to 6 sections covering the gate, diff
+  preview, `--dry-run`, and `--yes`.
+
 ## [0.2.0] — 2026-08-28
 
 v2 release. Full Antigravity Teamwork architecture replica.
