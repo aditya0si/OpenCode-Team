@@ -18,7 +18,7 @@ We aim to respond within 72 hours.
 
 ## Threat model
 
-opencode-team is a plugin that injects agent definitions and slash
+opencode-teamwork is a plugin that injects agent definitions and slash
 commands into your opencode instance. The threats we care about:
 
 1. **Prompt injection** — a malicious repository or document could
@@ -43,6 +43,6 @@ commands into your opencode instance. The threats we care about:
 - We do not exfiltrate your opencode config, your conversations, or
   your code to any server.
 - We do not phone home. There is no telemetry in the plugin.
-- We do not require any account. `opencode-team install` is a
+- We do not require any account. `opencode-teamwork install` is a
   one-time config write; after that, the plugin runs entirely
   locally against your opencode.

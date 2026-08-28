@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for opencode-team
+about: Suggest an idea for opencode-teamwork
 title: '[feat] '
 labels: enhancement
 assignees: aditya0si

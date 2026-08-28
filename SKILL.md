@@ -1,6 +1,6 @@
 ---
-name: opencode-team
-description: "Antigravity-style multi-agent orchestration plugin for OpenCode. Use when the user wants to install, configure, or operate opencode-team — including the 10 team/* agents (crafter, sentinel, worker, proof-worker, verifier, orchestrator, proposer, falsifier, synthesizer, scout), the 6 patterns (small-focused, long-proof, iterative-coding, distributed-coding, document-review, massive-proof-swarm), the 7 slash commands (/teamwork, /teamwork-craft, /team-orchestrate, /team-propose, /team-falsify, /team-synthesize, /team-review), the installer (`bunx opencode-team@latest install`), DAG engine, git worktree isolation, typed artifact bus, cost tracking, and per-role model selection."
+name: opencode-teamwork
+description: "Antigravity-style multi-agent orchestration plugin for OpenCode. Use when the user wants to install, configure, or operate opencode-teamwork — including the 10 team/* agents (crafter, sentinel, worker, proof-worker, verifier, orchestrator, proposer, falsifier, synthesizer, scout), the 6 patterns (small-focused, long-proof, iterative-coding, distributed-coding, document-review, massive-proof-swarm), the 7 slash commands (/teamwork, /teamwork-craft, /team-orchestrate, /team-propose, /team-falsify, /team-synthesize, /team-review), the installer (`bunx opencode-teamwork@latest install`), DAG engine, git worktree isolation, typed artifact bus, cost tracking, and per-role model selection."
 version: 0.2.0
 author: Aditya Singh
 license: MIT
@@ -11,7 +11,7 @@ metadata:
     homepage: https://github.com/aditya0si/OpenCode-Team
 ---
 
-# opencode-team — Antigravity-style multi-agent orchestration for OpenCode
+# opencode-teamwork — Antigravity-style multi-agent orchestration for OpenCode
 
 A community replica of Google Antigravity's `/teamwork-preview`,
 packaged as an opencode plugin. 10 agents, 6 patterns, 7 slash
@@ -22,7 +22,7 @@ match models per role, point it at your hardest problem.
 This skill is a hub. The body covers the high-level mental model. For
 per-agent behavior, per-pattern adjustments, and per-command output,
 load the relevant agent file or pattern file — they live inside the
-installed plugin at `node_modules/opencode-team/dist/cli/templates/`.
+installed plugin at `node_modules/opencode-teamwork/dist/cli/templates/`.
 
 ## The mental model
 
@@ -130,9 +130,9 @@ your `opencode.json` by hand later. There is no technical reason all
 ## Install
 
 ```bash
-bunx opencode-team@latest install
+bunx opencode-teamwork@latest install
 # or with a preset
-bunx opencode-team@latest install --preset team
+bunx opencode-teamwork@latest install --preset team
 ```
 
 The installer:
@@ -145,7 +145,7 @@ The installer:
 ## Uninstall
 
 ```bash
-bunx opencode-team@latest uninstall
+bunx opencode-teamwork@latest uninstall
 ```
 
 Removes the plugin entry and all `team/*` agents from your
@@ -154,7 +154,7 @@ opencode.json. Does not `npm uninstall` the package.
 ## Doctor
 
 ```bash
-bunx opencode-team@latest doctor
+bunx opencode-teamwork@latest doctor
 ```
 
 Checks that the plugin is listed, all 10 roles are configured.
@@ -164,7 +164,7 @@ Checks that the plugin is listed, all 10 roles are configured.
 After install, the templates are at:
 
 ```
-~/.npm/_npx/<hash>/node_modules/opencode-team/dist/cli/templates/
+~/.npm/_npx/<hash>/node_modules/opencode-teamwork/dist/cli/templates/
 ├── crafter.md           sentinel.md        worker.md
 ├── proof-worker.md      verifier.md        orchestrator.md
 ├── proposer.md          falsifier.md       synthesizer.md    scout.md

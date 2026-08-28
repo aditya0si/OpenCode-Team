@@ -1,5 +1,5 @@
 /**
- * Smoke test for opencode-team.
+ * Smoke test for opencode-teamwork.
  *
  * Runs the installer against a temp HOME, verifies the resulting
  * opencode.json is well-formed and has all 10 agents, and that the
@@ -22,7 +22,7 @@ function fail(msg: string): never { console.error(`  ✗ ${msg}`); process.exit(
 const distCli = join(ROOT, "dist", "cli", "index.js");
 if (!existsSync(distCli)) fail(`Build first: bun run build (no ${distCli})`);
 
-const fakeHome = mkdtempSync(join(tmpdir(), "opencode-team-smoke-"));
+const fakeHome = mkdtempSync(join(tmpdir(), "opencode-teamwork-smoke-"));
 const cfgDir = join(fakeHome, ".config", "opencode");
 const cfgPath = join(cfgDir, "opencode.json");
 
@@ -44,7 +44,7 @@ if (!existsSync(cfgPath)) fail(`Config not written: ${cfgPath}`);
 ok(`Config written: ${cfgPath}`);
 
 const cfg = JSON.parse(readFileSync(cfgPath, "utf-8"));
-if (!Array.isArray(cfg.plugin) || !cfg.plugin.includes("opencode-team@latest"))
+if (!Array.isArray(cfg.plugin) || !cfg.plugin.includes("opencode-teamwork@latest"))
   fail("plugin entry missing");
 ok("plugin entry present");
 
@@ -98,7 +98,7 @@ console.log("\n[3] Uninstall (--yes)");
   if (!r.stdout.includes("Changes that will be made")) fail("No diff preview in uninstall log");
   ok("Diff preview shown");
   const after = JSON.parse(readFileSync(cfgPath, "utf-8"));
-  if (Array.isArray(after.plugin) && after.plugin.includes("opencode-team@latest"))
+  if (Array.isArray(after.plugin) && after.plugin.includes("opencode-teamwork@latest"))
     fail("Plugin still listed after uninstall");
   ok("Plugin removed from plugin list");
   for (const role of expectedRoles) {

@@ -31,7 +31,7 @@ jobs:
       - name: Smoke test
         run: |
           node dist/cli/index.js install --print | tee /tmp/install-dry.json
-          node -e "const j = require('/tmp/install-dry.json'); if (!j.plugin.includes('opencode-team@latest')) process.exit(1);"
+          node -e "const j = require('/tmp/install-dry.json'); if (!j.plugin.includes('opencode-teamwork@latest')) process.exit(1);"
 
       - name: Verify templates shipped
         run: |

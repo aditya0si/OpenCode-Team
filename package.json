@@ -1,5 +1,5 @@
 {
-  "name": "opencode-team",
+  "name": "opencode-teamwork",
   "version": "0.2.1",
   "description": "Antigravity-style Teamwork multi-agent orchestration for OpenCode — 10 agents, 6 patterns, 7 slash commands. Replica of Google Antigravity's /teamwork-preview.",
   "main": "./dist/index.js",
@@ -17,7 +17,7 @@
     }
   },
   "bin": {
-    "opencode-team": "./dist/cli/index.js"
+    "opencode-teamwork": "./dist/cli/index.js"
   },
   "type": "module",
   "license": "MIT",

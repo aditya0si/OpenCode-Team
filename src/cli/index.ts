@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * opencode-team installer CLI.
+ * opencode-teamwork installer CLI.
  *
  * Usage:
- *   opencode-team install                # interactive: ask for model per role
- *   opencode-team install --preset team  # use a preset (single model everywhere)
- *   opencode-team install --reset        # overwrite existing config (no merge)
- *   opencode-team install --print        # print the config that would be written, then exit
- *   opencode-team uninstall              # remove the plugin from opencode.json
- *   opencode-team doctor                 # check that opencode.json is valid
- *   opencode-team --help
+ *   opencode-teamwork install                # interactive: ask for model per role
+ *   opencode-teamwork install --preset team  # use a preset (single model everywhere)
+ *   opencode-teamwork install --reset        # overwrite existing config (no merge)
+ *   opencode-teamwork install --print        # print the config that would be written, then exit
+ *   opencode-teamwork uninstall              # remove the plugin from opencode.json
+ *   opencode-teamwork doctor                 # check that opencode.json is valid
+ *   opencode-teamwork --help
  *
  * Installs to ~/.config/opencode/opencode.json by default. Override with
  * --config <path>. Honors OPENCODE_CONFIG_DIR for non-standard setups.
@@ -276,7 +276,7 @@ async function askText(
  *  null for "skip" (keep existing config), or "custom" for per-role. */
 async function pickPreset(): Promise<string | null> {
   const idx = await pickMenu(
-    "Choose a preset for opencode-team:",
+    "Choose a preset for opencode-teamwork:",
     PRESETS.map((p) => ({ label: p.name, description: p.description })),
     { skipChoice: "skip" },
   );
@@ -372,7 +372,7 @@ async function cmdInstall(args: string[]): Promise<void> {
   // Resolve the package spec. We use the npm package name so users
   // can pin to a version. The plugin's exports field provides
   // the entry points.
-  const pkg = "opencode-team@latest";
+  const pkg = "opencode-teamwork@latest";
 
   // ── 1. Choose the model assignment ────────────────────────────────
   let agents: Record<string, string>;
@@ -467,7 +467,7 @@ async function cmdInstall(args: string[]): Promise<void> {
   // ── 4. Write ──────────────────────────────────────────────────────
   saveConfig(configPath, merged);
   console.log(`\n  ✓ Wrote ${configPath}`);
-  console.log(`\n  Installed opencode-team with ${Object.keys(agents).length} agents.`);
+  console.log(`\n  Installed opencode-teamwork with ${Object.keys(agents).length} agents.`);
   console.log(`  Models:`);
   for (const [role, model] of Object.entries(agents)) {
     console.log(`    ${role.padEnd(28)} ${model}`);
@@ -496,7 +496,7 @@ async function cmdUninstall(args: string[]): Promise<void> {
   const preview: Record<string, any> = {};
   if (Array.isArray(config.plugin)) {
     preview.plugin = (config.plugin as string[]).filter(
-      (p: string) => !p.startsWith("opencode-team"),
+      (p: string) => !p.startsWith("opencode-teamwork"),
     );
   }
   if (config.agent && typeof config.agent === "object") {
@@ -506,7 +506,7 @@ async function cmdUninstall(args: string[]): Promise<void> {
     }
   }
 
-  console.log(`\n  Will remove opencode-team from: ${configPath}`);
+  console.log(`\n  Will remove opencode-teamwork from: ${configPath}`);
   console.log(`  Changes that will be made:`);
   console.log(diffConfig(config, preview));
 
@@ -514,7 +514,7 @@ async function cmdUninstall(args: string[]): Promise<void> {
     if (!isTTY || autoYes) {
       console.log(`  Proceeding (--yes or non-interactive).`);
     } else {
-      const ok = await askYesNo("Remove opencode-team?", { defaultYes: false });
+      const ok = await askYesNo("Remove opencode-teamwork?", { defaultYes: false });
       if (!ok) {
         console.log(`\n  Cancelled. No changes made.`);
         return;
@@ -529,52 +529,52 @@ async function cmdUninstall(args: string[]): Promise<void> {
   }
 
   saveConfig(configPath, preview);
-  console.log(`  ✓ Removed opencode-team from config.`);
+  console.log(`  ✓ Removed opencode-teamwork from config.`);
   console.log(`    The package is still installed via npm. Run:`);
-  console.log(`      npm uninstall -g opencode-team   # to fully remove`);
+  console.log(`      npm uninstall -g opencode-teamwork   # to fully remove`);
 }
 
 async function cmdDoctor(_args: string[]): Promise<void> {
   const configPath = resolveConfigPath();
-  console.log(`opencode-team doctor\n`);
+  console.log(`opencode-teamwork doctor\n`);
   console.log(`  Platform:     ${platform()} ${arch()}`);
   console.log(`  Node:         ${process.version}`);
   console.log(`  Config path:  ${configPath}`);
 
   if (!existsSync(configPath)) {
-    console.log(`\n  ✗ No config found. Run \`opencode-team install\`.`);
+    console.log(`\n  ✗ No config found. Run \`opencode-teamwork install\`.`);
     process.exit(1);
   }
   const config = loadExistingConfig(configPath);
   const hasPlugin =
     Array.isArray(config.plugin) &&
-    config.plugin.some((p: string) => p.startsWith("opencode-team"));
+    config.plugin.some((p: string) => p.startsWith("opencode-teamwork"));
   const agents = config.agent ?? {};
   const allRoles = ROLES.every((r) => r in agents);
   console.log(`  Plugin listed:  ${hasPlugin ? "✓" : "✗"}`);
   console.log(`  All roles set:  ${allRoles ? "✓" : "✗"}`);
   if (!hasPlugin) {
-    console.log(`\n  Fix: run \`opencode-team install\`.`);
+    console.log(`\n  Fix: run \`opencode-teamwork install\`.`);
     process.exit(1);
   }
   if (!allRoles) {
     const missing = ROLES.filter((r) => !(r in agents));
     console.log(`\n  Missing roles: ${missing.join(", ")}`);
-    console.log(`  Fix: re-run \`opencode-team install --reset\`.`);
+    console.log(`  Fix: re-run \`opencode-teamwork install --reset\`.`);
     process.exit(1);
   }
   console.log(`\n  All checks passed.`);
 }
 
 function printHelp(): void {
-  console.log(`opencode-team — Antigravity-style multi-agent orchestration for OpenCode.
+  console.log(`opencode-teamwork — Antigravity-style multi-agent orchestration for OpenCode.
 
 Usage:
-  opencode-team install [options]
-  opencode-team uninstall [options]
-  opencode-team doctor
-  opencode-team --help
-  opencode-team --version
+  opencode-teamwork install [options]
+  opencode-teamwork uninstall [options]
+  opencode-teamwork doctor
+  opencode-teamwork --help
+  opencode-teamwork --version
 
 Install options:
   --preset <name>     Use a preset: ${PRESETS.map((p) => p.name).join(", ")}, or 'custom' for per-role
@@ -594,14 +594,14 @@ without making any changes. Invalid input is re-prompted, not
 rejected.
 
 Examples:
-  opencode-team install                              # interactive
-  opencode-team install --preset team                # use a preset
-  opencode-team install --preset google --reset      # replace existing config
-  opencode-team install --yes                        # non-interactive (CI)
-  opencode-team install --dry-run                    # preview, never write
-  opencode-team install --config /path/to/config.json
-  opencode-team uninstall --yes                      # CI-friendly uninstall
-  opencode-team doctor
+  opencode-teamwork install                              # interactive
+  opencode-teamwork install --preset team                # use a preset
+  opencode-teamwork install --preset google --reset      # replace existing config
+  opencode-teamwork install --yes                        # non-interactive (CI)
+  opencode-teamwork install --dry-run                    # preview, never write
+  opencode-teamwork install --config /path/to/config.json
+  opencode-teamwork uninstall --yes                      # CI-friendly uninstall
+  opencode-teamwork doctor
 
 Docs: https://github.com/aditya0si/OpenCode-Team
 `);
@@ -619,7 +619,7 @@ async function main(): Promise<void> {
   }
   if (cmd === "--version" || cmd === "-v") {
     const pkg = await readPackageVersion();
-    console.log(`opencode-team ${pkg}`);
+    console.log(`opencode-teamwork ${pkg}`);
     return;
   }
   if (cmd === "install") {

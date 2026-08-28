@@ -5,7 +5,7 @@ import {
 } from "./templates.js";
 
 /**
- * opencode-team plugin entry. Two responsibilities:
+ * opencode-teamwork plugin entry. Two responsibilities:
  *
  * 1. Register the 6 team/* agents (orchestrator as primary, the rest
  *    as hidden subagents that the orchestrator dispatches to).
@@ -51,6 +51,6 @@ export default TeamPlugin;
 
 // Named exports for v1 / v2 dual compatibility (mirrors
 // oh-my-opencode-slim's exports).
-export const id = "opencode-team";
+export const id = "opencode-teamwork";
 export { TeamPlugin as server };
 export { TeamPlugin as setup };

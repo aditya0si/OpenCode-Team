@@ -1,8 +1,8 @@
-# opencode-team
+# opencode-teamwork
 
 > Antigravity-style multi-agent orchestration for OpenCode. 6 agents, 4 patterns, 5 slash commands. One-line install.
 
-[![npm version](https://img.shields.io/npm/v/opencode-team.svg)](https://www.npmjs.com/package/opencode-team)
+[![npm version](https://img.shields.io/npm/v/opencode-teamwork.svg)](https://www.npmjs.com/package/opencode-teamwork)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![OpenCode plugin](https://img.shields.io/badge/opencode-plugin-blueviolet)](https://opencode.ai)
 
@@ -19,9 +19,9 @@ the model per role. The loop is the same.
 ## Quick install
 
 ```bash
-bunx opencode-team@latest install
+bunx opencode-teamwork@latest install
 # or, if you don't have bun:
-npx opencode-team@latest install
+npx opencode-teamwork@latest install
 ```
 
 Then run `opencode` and try:
@@ -114,41 +114,41 @@ Use `/team-orchestrate` to invoke the v1 loop. Outputs go to
 
 ## Installation details
 
-The installer is `opencode-team install`. It:
+The installer is `opencode-teamwork install`. It:
 
 1. Resolves your config path: `$OPENCODE_CONFIG_DIR/opencode.json`
    or `~/.config/opencode/opencode.json`.
 2. Asks which preset (or `custom` for per-role model selection).
 3. Deep-merges the patch into your existing config. Doesn't touch
    anything else.
-4. Adds `opencode-team@latest` to the `plugin` array.
+4. Adds `opencode-teamwork@latest` to the `plugin` array.
 5. Prints the model assignments and tells you to run `opencode`.
 
 ### Flags
 
 ```bash
 # Use a preset
-opencode-team install --preset anthropic
-opencode-team install --preset team
-opencode-team install --preset google
-opencode-team install --preset openai
-opencode-team install --preset free
+opencode-teamwork install --preset anthropic
+opencode-teamwork install --preset team
+opencode-teamwork install --preset google
+opencode-teamwork install --preset openai
+opencode-teamwork install --preset free
 
 # Overwrite existing config
-opencode-team install --reset
+opencode-teamwork install --reset
 
 # Print what would be written, then exit
-opencode-team install --print
+opencode-teamwork install --print
 
 # Non-default config path
-opencode-team install --config /path/to/opencode.json
+opencode-teamwork install --config /path/to/opencode.json
 ```
 
 ### What gets written
 
 ```json
 {
-  "plugin": ["opencode-team@latest"],
+  "plugin": ["opencode-teamwork@latest"],
   "agent": {
     "team/orchestrator": { "model": "anthropic/claude-sonnet-4-5" },
     "team/proposer":     { "model": "anthropic/claude-sonnet-4-5" },
@@ -259,7 +259,7 @@ single agent. OK?" before falling back.
 
 ## Comparison to upstream
 
-| | Antigravity `/teamwork-preview` | opencode-team v0.2 |
+| | Antigravity `/teamwork-preview` | opencode-teamwork v0.2 |
 |---|---|---|
 | Patterns | 5 | 6 (added `small-focused`) |
 | Models | Gemini 3.x only | Any opencode-supported model |
@@ -292,7 +292,7 @@ bun dist/cli/index.js install --print   # test the installer
 The build emits:
 - `dist/index.js` — the opencode plugin entry (v1).
 - `dist/server.js` — same, for v2 host compatibility.
-- `dist/cli/index.js` — the `opencode-team` CLI.
+- `dist/cli/index.js` — the `opencode-teamwork` CLI.
 
 ## Contributing
 

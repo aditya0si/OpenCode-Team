@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to opencode-team are documented here. The format
+All notable changes to opencode-teamwork are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 CLI UX fix.
 
 ### Fixed
-- **CLI now asks before writing.** `opencode-team install` and
+- **CLI now asks before writing.** `opencode-teamwork install` and
   `uninstall` previously wrote to `~/.config/opencode/opencode.json`
   without confirmation. Both now show a diff preview of what will
   change, then prompt `Write this config? (Y/n)` (install, default
-  Y) or `Remove opencode-team? (y/N)` (uninstall, default N).
+  Y) or `Remove opencode-teamwork? (y/N)` (uninstall, default N).
 - **New `--yes` / `-y` flag** for CI / scripts. Skips all prompts;
   piped stdin also auto-proceeds.
 - **New `--dry-run` flag** (alias `--print`): prints the would-be
@@ -77,7 +77,7 @@ First public release. v1 architecture.
   `document-review`.
 - 5 slash commands: `/teamwork`, `/team-propose`, `/team-falsify`,
   `/team-synthesize`, `/team-review`.
-- Installer CLI: `opencode-team install` with 5 presets
+- Installer CLI: `opencode-teamwork install` with 5 presets
   (anthropic, team, google, openai, free) plus a `custom` per-role
   picker.
 - `uninstall` and `doctor` subcommands.

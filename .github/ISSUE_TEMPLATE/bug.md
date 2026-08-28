@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Something is broken with opencode-team
+about: Something is broken with opencode-teamwork
 title: '[bug] '
 labels: bug
 assignees: aditya0si
@@ -18,14 +18,14 @@ assignees: aditya0si
 
 ```bash
 # The exact command you ran
-opencode-team install --preset team
+opencode-teamwork install --preset team
 ```
 
 ## Environment
 
 - OS: [e.g. macOS 15.2, Windows 11, Ubuntu 24.04]
 - opencode version: [run `opencode --version`]
-- opencode-team version: [run `bunx opencode-team@latest --version`]
+- opencode-teamwork version: [run `bunx opencode-teamwork@latest --version`]
 - Node version: [run `node --version`]
 - Bun version: [run `bun --version`]
 

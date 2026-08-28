@@ -64,7 +64,7 @@ const distCli = "C:/Users/oliad/Desktop/opencodeteam/dist/cli/index.js";
 async function testUserAnswersN() {
   console.log("[8] User answers 'n' to y/n → install aborts, no file written");
 
-  const TMP = `/tmp/opencode-team-no-${Date.now()}`;
+  const TMP = `/tmp/opencode-teamwork-no-${Date.now()}`;
   const CFG = `${TMP}/opencode.json`;
   try { rmSync(CFG, { force: true }); } catch {}
 
