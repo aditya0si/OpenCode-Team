@@ -1,7 +1,7 @@
 {
   "name": "opencode-teamwork",
-  "version": "0.2.1",
-  "description": "Antigravity-style Teamwork multi-agent orchestration for OpenCode — 10 agents, 6 patterns, 7 slash commands. Replica of Google Antigravity's /teamwork-preview.",
+  "version": "0.3.0",
+  "description": "Antigravity-style Teamwork multi-agent orchestration for OpenCode — 10 agents, 6 topologies, 7 slash commands, and a code-owned run engine (event log, DAG dispatch, verified evidence, budget). Replica of Google Antigravity's /teamwork-preview.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
@@ -13,6 +13,7 @@
     "teamwork",
     "multi-agent",
     "orchestration",
+    "agent-orchestration",
     "ai",
     "agents",
     "claude",
@@ -29,28 +30,52 @@
     },
     "./templates": {
       "import": "./dist/templates.js"
+    },
+    "./engine": {
+      "import": "./dist/engine.js"
+    },
+    "./events": {
+      "import": "./dist/events.js"
+    },
+    "./policy": {
+      "import": "./dist/policy.js"
+    },
+    "./worktree": {
+      "import": "./dist/worktree.js"
+    },
+    "./artifacts": {
+      "import": "./dist/artifacts.js"
     }
   },
   "bin": "./dist/cli/index.js",
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "SKILL.md",
+    "CHANGELOG.md"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "clean": "bun -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true })\"",
     "build:plugin": "bun build src/index.ts --outfile dist/index.js --target node --format esm --external @opencode-ai/plugin --external @opencode-ai/sdk --external zod",
     "build:server": "bun build src/index.ts --outfile dist/server.js --target node --format esm --external zod",
     "build:cli": "bun build src/cli/index.ts --outdir dist/cli --target node --format esm --external @opencode-ai/plugin --external @opencode-ai/sdk --external zod",
     "build:templates": "bun build src/templates.ts --outfile dist/templates.js --target node --format esm --external zod",
-    "build:support": "bun build src/worktree.ts src/cost.ts src/state.ts src/artifacts.ts --outdir dist --target node --format esm",
+    "build:support": "bun build src/worktree.ts src/cost.ts src/state.ts src/artifacts.ts src/events.ts src/engine.ts src/policy.ts src/guard.ts src/tools.ts --outdir dist --root src --target node --format esm --external @opencode-ai/plugin --external @opencode-ai/sdk --external zod",
     "build:assets": "bun -e \"import { cpSync, mkdirSync } from 'node:fs'; mkdirSync('dist/cli', { recursive: true }); cpSync('src/cli/templates', 'dist/cli/templates', { recursive: true });\"",
     "build": "bun run clean && bun run build:plugin && bun run build:server && bun run build:cli && bun run build:templates && bun run build:support && bun run build:assets && tsc --emitDeclarationOnly",
     "prepare": "bun run build",
     "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "e2e": "bun scripts/e2e-engine.ts",
+    "integration": "bun scripts/plugin-integration.ts",
     "dev": "bun run build && opencode",
     "smoke": "bun scripts/smoke.ts",
-    "prepublishOnly": "bun run build",
+    "verify": "bun run typecheck && bun run test && bun run build && bun run smoke && bun run e2e && bun run integration",
+    "prepublishOnly": "bun run verify",
     "release:patch": "npm version patch",
     "release:minor": "npm version minor",
     "release:major": "npm version major"

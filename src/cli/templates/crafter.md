@@ -7,6 +7,7 @@ permission:
   edit: ask
   bash: ask
   webfetch: allow
+  task: deny
 prompt: "{file:./prompts/team/crafter.txt}"
 color: "#8b5cf6"
 ---

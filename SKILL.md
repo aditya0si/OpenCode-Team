@@ -1,77 +1,85 @@
 ---
 name: opencode-teamwork
-description: "Antigravity-style multi-agent orchestration plugin for OpenCode. Use when the user wants to install, configure, or operate opencode-teamwork — including the 10 team/* agents (crafter, sentinel, worker, proof-worker, verifier, orchestrator, proposer, falsifier, synthesizer, scout), the 6 patterns (small-focused, long-proof, iterative-coding, distributed-coding, document-review, massive-proof-swarm), the 7 slash commands (/teamwork, /teamwork-craft, /team-orchestrate, /team-propose, /team-falsify, /team-synthesize, /team-review), the installer (`bunx opencode-teamwork@latest install`), DAG engine, git worktree isolation, typed artifact bus, cost tracking, and per-role model selection."
-version: 0.2.0
+description: "Antigravity-style multi-agent orchestration plugin for OpenCode with a code-owned run engine. Use when the user wants to install, configure, or operate opencode-teamwork — including the 10 team/* agents (crafter, sentinel, worker, proof-worker, verifier, orchestrator, proposer, falsifier, synthesizer, scout), the 6 topologies (small-focused, long-proof, iterative-coding, distributed-coding, document-review, massive-proof-swarm), the 7 slash commands (/teamwork, /teamwork-craft, /team-orchestrate, /team-propose, /team-falsify, /team-synthesize, /team-review), the installer (`bunx opencode-teamwork@latest install`), the run engine tools (teamwork_plan, teamwork_dispatch, teamwork_verify, teamwork_status, teamwork_resume), the hash-chained event log, git worktree isolation, schema-validated artifacts, budget enforcement, and per-role model selection."
+version: 0.3.0
 author: Aditya Singh
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
   hermes:
-    tags: [opencode, antigravity, teamwork, multi-agent, orchestration, plugin, npm, agent-roles, pattern-library, slash-commands, dag, worktree, cost-tracking, typed-artifacts]
+    tags: [opencode, antigravity, teamwork, multi-agent, orchestration, plugin, npm, agent-roles, pattern-library, slash-commands, dag, worktree, cost-tracking, typed-artifacts, event-log, verification]
     homepage: https://github.com/aditya0si/OpenCode-Team
 ---
 
 # opencode-teamwork — Antigravity-style multi-agent orchestration for OpenCode
 
-A community replica of Google Antigravity's `/teamwork-preview`,
-packaged as an opencode plugin. 10 agents, 6 patterns, 7 slash
-commands, full DAG engine with git worktree isolation, typed
-artifact bus, and cost tracking. Install with one command, mix and
-match models per role, point it at your hardest problem.
+A community replica of Google Antigravity's `/teamwork-preview`, packaged as an
+OpenCode plugin. 10 agents, 6 topologies, 7 slash commands.
 
-This skill is a hub. The body covers the high-level mental model. For
-per-agent behavior, per-pattern adjustments, and per-command output,
-load the relevant agent file or pattern file — they live inside the
-installed plugin at `node_modules/opencode-teamwork/dist/cli/templates/`.
+**The rule that shapes everything: the LLM proposes, the runtime disposes.**
+Agents plan and implement; dispatch order, retries, the budget, terminal states
+and the record of what happened are owned by code (`src/engine.ts`,
+`src/events.ts`). A verifier PASS only counts when the report carries the exit
+code of a command that actually ran.
+
+This skill is a hub. The body covers the mental model. For per-agent behavior and
+per-topology adjustments, read the files inside the installed plugin at
+`node_modules/opencode-teamwork/dist/cli/templates/`.
 
 ## The mental model
 
-Teamwork is a loop, not a pipeline. The v2 (DAG-based) loop is:
+Teamwork is a loop, not a pipeline. The v2 loop is:
 
 ```
-crafter (Phase 1: 9-step elicitation wizard)
+crafter (Phase 1: interactive spec elicitation)
     ↓
-sentinel (Phase 2: dispatcher / coordinator)
+command.execute.before        ← flags parsed in code, run id minted
     ↓
-plan.dag.json (build the task dependency graph)
+sentinel (Phase 2: coordinator — calls the engine, does not decide order)
     ↓
-worktree-per-agent (one isolated git worktree each)
+teamwork_plan                 ← validate DAG, create run, write specs, worktrees
     ↓
-worker[0..N] → patch.diff + summary.md
+teamwork_dispatch             ← "what runs NOW?" (topological + budget + cap)
     ↓
-verifier[0..N] → verification_report.json
+worker[0..N] → patch.diff + summary.md   (one git worktree each)
     ↓
-FAIL → feedback_for_worker.md → back to worker (loop)
-PASS → merge to base branch
+verifier[0..N] → verification_report.json (cmd + exitCode + stdoutSha256)
+    ↓
+teamwork_verify               ← engine rules: COMPLETED | retry | dead-letter
+    ↓
+final.md + the run directory
 ```
 
-The v1 (legacy) loop is a simpler propose-falsify-synthesize-verify
-cycle for users who don't need the DAG engine or worktree isolation.
-Both loops ship; the user picks via `/teamwork` (v2) or
-`/team-orchestrate` (v1).
+Everything the sentinel needs to know after a compaction comes from
+`events.jsonl` (append-only, hash-chained) via `teamwork_status`, never from the
+model's memory. `state.json` is a derived snapshot.
+
+The v1 loop (`/team-orchestrate`) is the simpler propose → falsify → synthesize →
+verify cycle, without the DAG engine or worktrees. Both ship.
 
 ## The 10 agents
 
-| Agent | Role | Hidden | Mode |
+| Agent | Role | Mode | Can edit |
 |---|---|---|---|
-| `team/crafter` | Phase-1 wizard. Runs the 9-step elicitation flow. Produces `prompt_draft.md`. | no | primary |
-| `team/sentinel` | Phase-2 coordinator. Loads spec, builds DAG, dispatches workers + verifiers, iterates, merges. | no | primary |
-| `team/worker` | Generic implementer. Own worktree, scoped spec, returns diff. | yes | subagent |
-| `team/proof-worker` | Math/proof specialist. Lean/Coq/Isabelle. | yes | subagent |
-| `team/verifier` | Forcing function. Runs the verification plan. Returns structured PASS/FAIL report. | yes | subagent |
-| `team/orchestrator` | v1 loop coordinator. | no | primary |
-| `team/proposer` | v1 candidate generator. | yes | subagent |
-| `team/falsifier` | v1 adversarial critic. | yes | subagent |
-| `team/synthesizer` | v1 merge step. | yes | subagent |
-| `team/scout` | Read-only context gatherer. | yes | subagent |
+| `team/crafter` | Phase-1 wizard. Runs the elicitation flow. Produces `prompt_draft.md`. | primary | ask |
+| `team/sentinel` | Run coordinator. Calls the engine, dispatches workers + verifiers, merges. | primary | yes |
+| `team/worker` | Generic implementer. Own worktree, scoped spec, returns diff + summary. | subagent | yes |
+| `team/proof-worker` | Math/proof specialist. Lean/Coq/Isabelle. | subagent | yes |
+| `team/verifier` | Forcing function. Runs the verification plan, returns a structured report. | subagent | **no** |
+| `team/orchestrator` | v1 loop coordinator. | primary | yes |
+| `team/proposer` | v1 candidate generator. | subagent | ask |
+| `team/falsifier` | v1 adversarial critic. | subagent | **no** |
+| `team/synthesizer` | v1 merge step. | subagent | ask |
+| `team/scout` | Read-only context gatherer. | subagent | **no** |
 
-Hidden subagents don't appear in `@` autocomplete. They're invoked
-by the Sentinel / Orchestrator via the `task` tool. You can still
-@-mention them manually.
+Read-only roles are enforced twice: `permission.edit: deny` is injected as a real
+OpenCode config key, and a runtime guard refuses write-tool calls from those
+sessions. Leaf agents also get `task: deny`, so a worker cannot fan out its own
+swarm — only the sentinel and the v1 orchestrator may invoke subagents.
 
-## The 6 patterns
+## The 6 topologies
 
-| Pattern | Topology | Trigger |
+| Topology | Shape | Trigger |
 |---|---|---|
 | `small-focused` | 1 builder + 1 reviewer loop | Single self-contained fix |
 | `iterative-coding` | 1 proposer → 1 falsifier (no synthesis) | Tight agent-test-refine loop |
@@ -80,9 +88,11 @@ by the Sentinel / Orchestrator via the `task` tool. You can still
 | `massive-proof-swarm` | meta-coord + 100+ searchers | Open conjecture, opt-in only |
 | `document-review` | 1 chair + 3 critics + 1 aggregator | Paper / RFC / audit review |
 
-The Sentinel picks from the spec. Force one with
-`/teamwork --topology <name> "..."`. If you don't, the Sentinel infers
-from the spec and asks one question if it can't tell.
+The names above are generated from `src/policy.ts`, and a test asserts every one
+resolves to a pattern file on disk. The orchestrating agents' prompts carry the
+absolute paths of those files, so no agent has to guess where the definition
+lives. Force one with `/teamwork --topology <name> "..."` — the flag is parsed in
+code and an unknown name is reported, not silently accepted.
 
 ## The 7 slash commands
 
@@ -98,22 +108,26 @@ from the spec and asks one question if it can't tell.
 
 ## The artifact bus
 
-Raw conversation is never shared. Agents communicate through typed
-artifacts on disk. Every artifact has a Zod schema in
-`src/artifacts.ts`:
+Raw conversation is never shared. Agents communicate through typed artifacts on
+disk, and the engine validates them against the Zod schemas in `src/artifacts.ts`
+before accepting them:
 
-| File | Producer | Consumer | Schema |
+| File | Producer | Consumer | Validated |
 |---|---|---|---|
-| `prompt_draft.md` | crafter | sentinel | markdown (structure in crafter prompt) |
-| `plan.dag.json` | sentinel | workers | `PlanDagSchema` |
-| `state.json` | sentinel | sentinel (on resume) | `SessionState` |
-| `costs.json` | every agent | sentinel | `CostState` |
-| `spec.json` | sentinel | worker | `SpecSchema` |
-| `patch.diff` | worker | verifier | (git diff) |
-| `summary.md` | worker | sentinel | markdown |
-| `verification_report.json` | verifier | sentinel | `VerificationReportSchema` |
-| `feedback_for_worker.md` | verifier | worker (next round) | markdown |
+| `events.jsonl` | engine | everything | hash chain verified on read |
+| `state.json` | engine (derived) | sentinel (on resume) | written from the log, never hand-edited |
+| `request.md` | plugin (`command.execute.before`) | sentinel | raw request + parsed flags |
+| `plan.dag.json` | sentinel via `teamwork_plan` | engine, workers | `PlanDagSchema` |
+| `spec-<taskId>.json` | engine | worker | `SpecSchema` |
+| `patch.diff` | worker | verifier | git diff (the file *is* the artifact) |
+| `summary.md` | worker | verifier (as a hint only) | markdown |
+| `verification_report.json` | verifier | engine via `teamwork_verify` | `VerificationReportSchema` + evidence rules |
 | `final.md` | sentinel | user | markdown |
+
+A report is rejected if a `programmatic`/`adversarial` check has no `cmd` or no
+`exitCode`, if a check claims `passed: false` while its command exited 0 (or the
+reverse), or if a PASS contains no executed check at all. Fabricated PASSes were
+the original architecture's weakest point; the exit code is what closes it.
 
 ## Per-role model selection
 

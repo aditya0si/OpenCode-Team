@@ -1,53 +1,34 @@
 ---
-description: "Sentinel — main dispatcher. Loads a spec (or asks 1-2 questions), provisions a worktree, builds the DAG, dispatches workers + verifiers, iterates, merges. This is the user-facing /teamwork command."
+description: "Sentinel — main dispatcher. Starts a Teamwork run: parse the request, plan the DAG with teamwork_plan, drive teamwork_dispatch / teamwork_verify, then present. This is the user-facing /teamwork command."
 agent: team/sentinel
 ---
 
-$ARGUMENTS
-
-{{if eq .sessionId ""}}
-  Look in `.opencode/teamwork/` for a recent `prompt_draft.md`. If
-  you find one, ask the user to confirm the session ID. If not, ask
-  1-2 short questions to pick the topology, then either run the
-  crafter (via /teamwork-craft) or inline the answers and proceed.
-{{else}}
-  Load the spec from `.opencode/teamwork/{{.sessionId}}/prompt_draft.md`.
-{{end}}
-
-Then:
-
-1. Provision the sentinel worktree: `git worktree add
-   .opencode/teamwork/<session-id>/worktrees/sentinel -b
-   teamwork/base-<session-id>` (or skip if not in a git repo).
-2. Build the DAG in `.opencode/teamwork/<session-id>/plan.dag.json`.
-   Independent tasks run in parallel; dependent ones in topological
-   order.
-3. Dispatch workers in topological order. Each gets:
-   - Its own worktree
-   - A scoped `spec.json`
-   - Returns: `patch.diff` + `summary.md` + cost metrics
-4. Dispatch verifiers against each worker's diff. Aggregated
-   results go in
-   `.opencode/teamwork/<session-id>/verify/summary.json`.
-5. If FAIL, send the verifier's `feedback_for_worker.md` back to
-   the worker for the next round. Loop until PASS, maxRounds, or
-   budget exhausted.
-6. On full PASS, merge the sentinel worktree back. On partial,
-   present the partial + the open verification reports.
-
-Hard caps (override in the spec if the user asks):
-- 4 rounds per task (6 for proof, 1 for small-focused, 24h for
-  massive-proof)
-- Default $20 session budget (configurable per run)
-
-When done, write `.opencode/teamwork/<session-id>/final.md` and
-present. Tell the user:
-- Which topology you chose
-- How many rounds each task took
-- Total cost (estimated)
-- Path to the final artifact
-- Any unresolved verification reports
-
-The user's full request was:
+The user's request:
 
 $ARGUMENTS
+
+Do this:
+
+1. Read `.opencode/teamwork/LATEST.json`. It contains the pre-parsed session
+   id, `--topology` / `--budget` / `--concurrency` if the user passed them,
+   and the request. Read `.opencode/teamwork/<session-id>/request.md` for the
+   full request text. Flags are already parsed for you — do not re-parse them,
+   and do not invent a session id.
+2. If the request is under-specified, ask at most two questions, or run the
+   crafter (`/teamwork-craft`) first. Otherwise write the spec to
+   `.opencode/teamwork/<session-id>/prompt_draft.md`.
+3. Pick one topology from the topology library in your context (use the
+   parsed `--topology` if present). Read that topology's definition file
+   before planning.
+4. Call `teamwork_plan` with the topology, the task list, and — when the user
+   passed them — `budgetUsd` and `maxConcurrency`. Every task needs
+   `acceptanceCriteria`, its real `dependsOn`, and a `taskClass`.
+5. Loop: `teamwork_dispatch` → one `team/worker` per returned task → one
+   `team/verifier` per task → `teamwork_verify` with the report path. Keep
+   going until the engine reports nothing dispatchable.
+6. Write `.opencode/teamwork/<session-id>/final.md` and present:
+   topology chosen, per-task status and rounds, dead-lettered tasks with
+   their reproductions, total cost against budget, and the run directory path.
+
+The engine owns dispatch order, retries, the budget and terminal states.
+If `teamwork_dispatch` returns nothing, do not dispatch anyway.

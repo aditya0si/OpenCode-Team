@@ -7,6 +7,7 @@ permission:
   edit: deny
   bash: deny
   webfetch: allow
+  task: deny
 prompt: "{file:./prompts/team/falsifier.txt}"
 color: "#ef4444"
 hidden: true
