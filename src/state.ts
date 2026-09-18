@@ -1,18 +1,35 @@
 /**
- * Session state machine for Teamwork.
+ * Compatibility layer for run state.
  *
- * Persists the Sentinel's progress to
- * `.opencode/teamwork/<session-id>/state.json` after every
- * transition. On RESUME, the Sentinel re-reads this file and
- * picks up where it left off.
+ * The old module claimed to be a "session state machine" and had the LLM
+ * write `state.json` after every step. That made the record of what happened
+ * a model claim rather than a fact, and an interrupted run could resume into a
+ * state that never occurred.
  *
- * Pure data — no I/O outside of readFileSync/writeFileSync on
- * the well-known path.
+ * State now lives in the append-only hash-chained event log (`events.jsonl`,
+ * see `src/events.ts`), and `state.json` is a DERIVED snapshot written by the
+ * engine. Nothing model-authored is authoritative.
+ *
+ * These exports are kept so existing callers keep compiling; new code should
+ * use `src/events.ts` (deriveSession / appendEvent) and `src/engine.ts`.
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import {
+  deriveSession,
+  readEvents,
+  verifyChain,
+  writeSnapshot,
+  type DerivedSession,
+  type EventType,
+} from "./events.js";
+import type { Topology } from "./policy.js";
 
+/**
+ * @deprecated The sentinel's state is derived from the event log. Kept only so
+ * legacy callers can name the phases.
+ */
 export type SentinelState =
   | "PENDING"
   | "LOAD_SPEC"
@@ -27,89 +44,75 @@ export type SentinelState =
   | "PRESENT_PARTIAL"
   | "DONE";
 
-export interface TaskState {
-  taskId: string;
-  status: "PENDING" | "RUNNING" | "VERIFYING" | "COMPLETED" | "FAILED";
-  attempts: number;
-  lastVerifierReport?: string; // path
-  lastPatch?: string;          // path
-  assignedAgent?: string;
-  assignedModel?: string;
-  worktreePath?: string;
-  dependencies: string[];
-  acceptanceCriteria: string[];
-  artifacts: string[];
-  metrics?: { tokensUsed: number; costUsd: number };
-}
-
-export interface SessionState {
-  sessionId: string;
-  topology: "small-focused" | "large-swarm" | "proof" | "massive-proof" | "doc-review";
-  integrityMode: "development" | "demo" | "benchmark";
-  workingDirectory: string;
-  state: SentinelState;
-  startedAt: string;
-  updatedAt: string;
-  tasks: TaskState[];
-  pitfalls: string[];        // answer-agnostic mistakes from past rounds
-  notes: string[];           // free-form observations
+/**
+ * @deprecated Use `DerivedSession` from `src/events.ts`. The legacy shape
+ * carried an `integrityMode` that nothing read and a topology union that did
+ * not match any pattern file.
+ */
+export interface SessionState extends DerivedSession {
+  /** @deprecated pitfalls live in the run artifacts, not in derived state. */
+  notes: string[];
 }
 
 function statePath(sessionDir: string): string {
   return join(sessionDir, "state.json");
 }
 
+/**
+ * Read the run state. Prefers the event log (authoritative, replayable) and
+ * falls back to the last snapshot for runs created before the log existed.
+ */
 export function loadSessionState(sessionDir: string): SessionState | null {
+  const events = readEvents(sessionDir);
+  if (events.length > 0) {
+    const derived = deriveSession(events);
+    return { ...derived, notes: [] };
+  }
   const path = statePath(sessionDir);
   if (!existsSync(path)) return null;
-  return JSON.parse(readFileSync(path, "utf-8"));
-}
-
-export function saveSessionState(sessionDir: string, state: SessionState): void {
-  mkdirSync(sessionDir, { recursive: true });
-  state.updatedAt = new Date().toISOString();
-  writeFileSync(statePath(sessionDir), JSON.stringify(state, null, 2));
-}
-
-export function newSessionState(opts: {
-  sessionId: string;
-  topology: SessionState["topology"];
-  integrityMode: SessionState["integrityMode"];
-  workingDirectory: string;
-}): SessionState {
-  const now = new Date().toISOString();
-  return {
-    sessionId: opts.sessionId,
-    topology: opts.topology,
-    integrityMode: opts.integrityMode,
-    workingDirectory: opts.workingDirectory,
-    state: "PENDING",
-    startedAt: now,
-    updatedAt: now,
-    tasks: [],
-    pitfalls: [],
-    notes: [],
-  };
-}
-
-export function addPitfall(sessionDir: string, pitfall: string): void {
-  const state = loadSessionState(sessionDir);
-  if (!state) return;
-  if (!state.pitfalls.includes(pitfall)) {
-    state.pitfalls.push(pitfall);
-    saveSessionState(sessionDir, state);
+  try {
+    const parsed = JSON.parse(readFileSync(path, "utf-8")) as DerivedSession;
+    return { ...parsed, notes: [] };
+  } catch {
+    return null;
   }
 }
 
-export function transition(
-  sessionDir: string,
-  nextState: SentinelState,
-  notes?: string,
-): SessionState {
-  const state = loadSessionState(sessionDir);
-  if (!state) throw new Error(`No session state in ${sessionDir}`);
-  state.state = nextState;
-  if (notes) state.notes.push(notes);
-  saveSessionState(sessionDir, state);
-  return state;
+/** Replay the log and refresh the snapshot. */
+export function refreshSnapshot(sessionDir: string): DerivedSession | null {
+  const events = readEvents(sessionDir);
+  if (events.length === 0) return null;
+  const derived = deriveSession(events);
+  writeSnapshot(sessionDir, derived);
+  return derived;
 }
+
+/**
+ * @deprecated Callers must not write state. Use `appendEvent` (or one of the
+ * engine methods, which validate and append for you).
+ */
+export function saveSessionState(_sessionDir: string, _state: SessionState): never {
+  throw new Error(
+    "saveSessionState is removed: run state is derived from the append-only event log. " +
+      "Use appendEvent() from src/events.ts, or the engine methods (dispatch/recordRound).",
+  );
+}
+
+export interface LogIntegrity {
+  ok: boolean;
+  length: number;
+  reason?: string;
+}
+
+/** Convenience: is this run's log intact? */
+export function checkLog(sessionDir: string): LogIntegrity {
+  const events = readEvents(sessionDir);
+  const chain = verifyChain(events);
+  return {
+    ok: chain.ok,
+    length: chain.length,
+    ...(chain.reason ? { reason: chain.reason } : {}),
+  };
+}
+
+export type { DerivedSession, EventType, Topology };

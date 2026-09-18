@@ -7,6 +7,7 @@ permission:
   edit: ask
   bash: ask
   webfetch: allow
+  task: deny
 prompt: "{file:./prompts/team/synthesizer.txt}"
 color: "#10b981"
 hidden: true

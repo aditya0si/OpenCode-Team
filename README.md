@@ -1,283 +1,149 @@
 # opencode-teamwork
 
-> Antigravity-style multi-agent orchestration for OpenCode. 6 agents, 4 patterns, 5 slash commands. One-line install.
+> Antigravity-style multi-agent orchestration for OpenCode. 10 agents, 6 topologies, 7 slash commands — and a **run engine owned by code**: append-only event log, topological dispatch, hashed verification evidence, budget enforcement.
 
 [![npm version](https://img.shields.io/npm/v/opencode-teamwork.svg)](https://www.npmjs.com/package/opencode-teamwork)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![OpenCode plugin](https://img.shields.io/badge/opencode-plugin-blueviolet)](https://opencode.ai)
 
-This is a community replica of Google Antigravity's `/teamwork-preview`,
-packaged as an opencode plugin. The team is opinionated: every run
-goes scout → propose×N → falsify×N → synthesize → verify, with a
-shared pitfall registry across rounds. You pick the pattern. You pick
-the model per role. The loop is the same.
+A community replica of Google Antigravity's `/teamwork-preview`, packaged as an
+OpenCode plugin.
 
 ```
 /teamwork "your hardest problem"
 ```
 
+The design rule is one line: **the LLM proposes, the runtime disposes.**
+Agents plan and implement. Dispatch order, retries, the budget, terminal states
+and the record of what happened belong to code, so a run survives a compaction,
+a model swap, or a restart — and a PASS means "a command ran and exited 0",
+not "a model felt good about it".
+
 ## Quick install
 
 ```bash
 bunx opencode-teamwork@latest install
-# or, if you don't have bun:
+# or
 npx opencode-teamwork@latest install
 ```
 
 Then run `opencode` and try:
 
 ```
-/teamwork-craft                                # Phase 1: 9-step wizard
-/teamwork "your hardest problem"               # v2: full DAG + worktrees + cost
-/teamwork --topology small-focused "rename x"  # fast path for tiny fixes
-/team-orchestrate "fix the off-by-one"         # v1: simpler propose/falsify loop
-/teamwork --topology iterative-coding "fix the off-by-one in parser.ts"
-/teamwork --topology distributed-coding "migrate the auth module to JWT"
-/teamwork --topology long-proof "prove Knuth cycles for even n"
-/teamwork --topology document-review "review https://arxiv.org/abs/2407.03262"
+/teamwork-craft                                       # Phase 1: interactive spec wizard
+/teamwork "your hardest problem"                      # plan → dispatch → verify
+/teamwork --topology small-focused "rename x"         # flags are parsed in code
+/teamwork --topology long-proof --budget 30 "prove X"
+/teamwork --topology distributed-coding --concurrency 4 "migrate auth to JWT"
 ```
 
-## What's in the box
+## What is enforced in code
 
-| | |
-|---|---|
-| **10 agents** | crafter (wizard), sentinel (DAG coordinator), worker, proof-worker, verifier, orchestrator (v1), proposer, falsifier, synthesizer, scout |
-| **6 patterns** | small-focused, iterative-coding, distributed-coding, long-proof, massive-proof-swarm, document-review |
-| **7 commands** | `/teamwork`, `/teamwork-craft`, `/team-orchestrate`, `/team-propose`, `/team-falsify`, `/team-synthesize`, `/team-review` |
-| **5 presets** | anthropic, team, google, openai, free — or `custom` for per-role |
-| **1 DAG engine** | Builds the task dependency graph; dispatches in topological order |
-| **Git worktree isolation** | One worktree per agent, no cross-contamination |
-| **Typed artifact bus** | `spec.json`, `plan.dag.json`, `patch.diff`, `verification_report.json`, Zod-validated |
-| **Cost tracking** | Per-agent spend, session budget guardrails, halt at 80% of cap |
-| **Session checkpointing** | `state.json` written on every transition; resume after interruption |
-| **Pitfall registry** | Shared across rounds, distills verifier findings into answer-agnostic mistakes |
+Every claim below is backed by a test. `bun run verify` runs all of them.
 
-## The v2 architecture (matches Antigravity's Teamwork)
-
-```
-PHASE 1 (crafter, primary, interactive)
-    ↓ 9-step elicitation wizard
-prompt_draft.md (in .opencode/teamwork/<session-id>/)
-
-PHASE 2 (sentinel, primary, autonomous)
-    ↓
-[1] Load or inline the spec
-[2] git worktree add .opencode/teamwork/<id>/worktrees/sentinel
-[3] Build plan.dag.json — task dependency graph
-[4] Provision worktrees per agent
-[5] Dispatch workers in topological order (parallel where possible)
-[6] Each worker returns: patch.diff + summary.md + cost.json
-[7] Verifiers run against each patch.diff → verification_report.json
-[8] If FAIL: feedback_for_worker.md → back to worker (loop)
-    If PASS: merge worker branch → sentinel branch
-[9] On full success: merge sentinel → user's branch
-[10] Write state.json + final.md on every transition (resume-safe)
-```
-
-The key insight from the Teamwork paper: implementers are biased.
-The verification engine enforces strict segregation of duties —
-the verifier sees the diff, not the worker's self-report. The
-worker cannot certify its own work.
-
-## v1 (legacy) loop
-
-If you don't need the DAG engine or worktree isolation, the v1 loop
-is a simpler propose → falsify → synthesize → verify cycle:
-
-```
-        ┌──── scout (read-only, fast) ────┐
-        │                                 │
-   ┌────▼────┐  ┌────┐ ┌────┐ ┌────┐    │
-   │ propose │─►│ c1 │ │ c2 │ │ c3 │    │   propose in parallel
-   └────┬────┘  └─┬──┘ └─┬──┘ └─┬──┘    │   different strategies
-        │         │      │      │         │
-   ┌────▼────┐  ┌─▼──┐ ┌─▼──┐ ┌─▼──┐    │
-   │ falsify │─►│crit│ │crit│ │crit│    │   falsify in parallel
-   └────┬────┘  └─┬──┘ └─┬──┘ └─┬──┘    │   adversarial
-        │         │      │      │         │
-        │      ┌──▼──────▼──────▼──┐     │
-        │      │    synthesize    │     │   merge into one
-        │      └────────┬─────────┘     │
-        │               │               │
-        │      ┌────────▼─────────┐     │
-        │      │     verify       │     │   PASS or FAIL
-        │      └────────┬─────────┘     │
-        │               │               │
-        │         FAIL? ├──► pitfalls.md ──► re-propose (loop)
-        │               │
-        └──────────────►│
-                       PASS ──► final.md
-```
-
-Use `/team-orchestrate` to invoke the v1 loop. Outputs go to
-`.teamwork-runs/<run-id>/`.
-
-## Installation details
-
-The installer is `opencode-teamwork install`. It:
-
-1. Resolves your config path: `$OPENCODE_CONFIG_DIR/opencode.json`
-   or `~/.config/opencode/opencode.json`.
-2. Asks which preset (or `custom` for per-role model selection).
-3. Deep-merges the patch into your existing config. Doesn't touch
-   anything else.
-4. Adds `opencode-teamwork@latest` to the `plugin` array.
-5. Prints the model assignments and tells you to run `opencode`.
-
-### Flags
-
-```bash
-# Use a preset
-opencode-teamwork install --preset anthropic
-opencode-teamwork install --preset team
-opencode-teamwork install --preset google
-opencode-teamwork install --preset openai
-opencode-teamwork install --preset free
-
-# Overwrite existing config
-opencode-teamwork install --reset
-
-# Print what would be written, then exit
-opencode-teamwork install --print
-
-# Non-default config path
-opencode-teamwork install --config /path/to/opencode.json
-```
-
-### What gets written
-
-```json
-{
-  "plugin": ["opencode-teamwork@latest"],
-  "agent": {
-    "team/orchestrator": { "model": "anthropic/claude-sonnet-4-5" },
-    "team/proposer":     { "model": "anthropic/claude-sonnet-4-5" },
-    "team/falsifier":    { "model": "anthropic/claude-sonnet-4-5" },
-    "team/synthesizer":  { "model": "anthropic/claude-sonnet-4-5" },
-    "team/verifier":     { "model": "anthropic/claude-sonnet-4-5" },
-    "team/scout":        { "model": "anthropic/claude-sonnet-4-5" }
-  }
-}
-```
-
-You can edit this file by hand. The plugin doesn't care which model
-each role uses; it just dispatches.
-
-## Patterns
-
-### v2 (DAG-based) patterns
-
-| Pattern | Topology | Use when |
+| Guarantee | Mechanism | Test |
 |---|---|---|
-| `small-focused` | 1 builder + 1 reviewer loop | Single self-contained fix |
-| `distributed-coding` | N workers in parallel + verifiers | Multi-module build, migration |
-| `long-proof` | 1 strategist + 3-5 searchers + formal checker | Math/TCS proof, Lean/Coq |
-| `massive-proof-swarm` | meta-coord + 100+ searchers | Open conjecture, opt-in only |
-| `document-review` | 1 chair + 3 critics + 1 aggregator | Paper / RFC / audit |
+| Dispatch follows the DAG | `Engine.dispatchable()` returns only tasks whose dependencies are COMPLETED, within the concurrency cap | `bun test` — topological order + cap |
+| Cycles and dangling deps can't start a run | `validatePlan()` rejects them before the first event is written | `bun test` — plan validation |
+| The verifier cannot edit code | `permission.edit: deny` injected as a real config key **and** a runtime guard that refuses write tools for read-only sessions | `plugin-integration` — "verifier edit refused" |
+| A PASS must be evidence | the engine refuses a report with no executed check, or a check marked failed with `exitCode: 0` | `bun test` + `e2e` — "rubric-only PASS rejected" |
+| Budget stops the run | `dispatchable()` returns nothing at the cap; `budget.exhausted` is logged | `e2e` — "dispatch stops once the cap is hit" |
+| One bad task doesn't poison the run | `maxRounds` exhaustion dead-letters that task; the rest continue | `e2e` — "3 of 4 completed, 1 parked" |
+| The record can't be rewritten | events are hash-chained; `teamwork_resume` refuses a tampered log | `bun test` + `e2e` — tamper detection |
+| Long runs survive compaction | `experimental.session.compacting` re-injects plan, task states and budget from the log | `plugin-integration` — "plan re-injected" |
+| Per-role models survive the plugin | config is merged, not replaced | `plugin-integration` — "verifier model preserved" |
+| An agent name can't escape the run dir | `assertAgentName` + argv-based git calls (no shell) | `bun test` — worktree safety |
 
-### v1 (legacy) pattern
-
-`iterative-coding` — a single proposer + falsifier + verify loop, no
-synthesis, no DAG. Use `/team-orchestrate --pattern iterative-coding`
-to invoke.
-
-Force a topology:
-```bash
-/teamwork --topology long-proof "prove X"
-```
-
-If you don't force one, the sentinel infers from the spec and asks
-one short question if it can't tell.
-
-## Manual install (no CLI)
-
-If you don't want to use the installer, you can drop the agent
-files into your project's `.opencode/agents/team/` directory. The
-files are in `src/cli/templates/` in this repo. The plugin won't
-load the `team/*` slash commands that way (those require the plugin),
-but the agents themselves will work.
-
-## Outputs
-
-### v2 (DAG-based)
+## Architecture
 
 ```
-.opencode/teamwork/<session-id>/
-├── prompt_draft.md         # from crafter
-├── plan.dag.json           # task dependency graph (Zod-validated)
-├── state.json              # sentinel state (for resume)
-├── costs.json              # running cost / budget tracker
-├── worktrees/
-│   ├── sentinel/           # sentinel's worktree
-│   ├── agent-builder-1/    # one per worker
-│   └── agent-builder-N/
-├── spec-<taskId>.json      # scoped spec per worker
-├── patch-<taskId>.diff     # worker's output
-├── summary-<taskId>.md     # worker's self-report
-├── verify-<taskId>.json    # verifier's report
-└── final.md                # the answer (sentinel writes)
+/teamwork "…"
+   │
+   ├─ command.execute.before      ← flags parsed IN CODE, run id minted,
+   │                                .opencode/teamwork/LATEST.json written
+   │
+   ├─ team/sentinel (primary)     ← picks a topology, calls the engine, merges
+   │     │
+   │     ├─ teamwork_plan         ← validate DAG, create run, write specs, worktrees
+   │     ├─ teamwork_dispatch     ← "what runs now?" (topological + budget + cap)
+   │     ├─ team/worker  ×N       ← one git worktree each, returns patch.diff + summary
+   │     ├─ team/verifier ×N      ← runs the actual commands, records cmd+exitCode+hash
+   │     ├─ teamwork_verify       ← engine rules: COMPLETED | retry | dead-letter
+   │     ├─ teamwork_status       ← derived from the log, never from memory
+   │     └─ teamwork_resume       ← chain-verified rebuild after a restart
+   │
+   └─ .opencode/teamwork/<run-id>/
+        ├─ events.jsonl           ← append-only, hash-chained: the source of truth
+        ├─ state.json             ← DERIVED snapshot (never hand-written)
+        ├─ plan.dag.json          ← schema-validated
+        ├─ spec-<taskId>.json     ← schema-validated, one per task
+        ├─ request.md             ← the raw request + parsed flags
+        ├─ worktrees/             ← one per agent
+        └─ final.md               ← what the user reads
 ```
 
-### v1 (legacy)
+Implementers are biased; that's the premise. The verifier sees the diff and the
+spec, never the worker's self-report, and its verdict only counts when it carries
+the exit code of something that actually ran.
 
-```
-.teamwork-runs/
-└── 2026-08-28T12-34-56-abc123/
-    ├── scout-report.md
-    ├── candidates/
-    │   ├── cand-1.md
-    │   ├── cand-2.md
-    │   └── cand-3.md
-    ├── critiques/
-    │   ├── crit-1.md
-    │   ├── crit-2.md
-    │   └── crit-3.md
-    ├── synthesis/
-    │   └── syn-1.md
-    ├── verify/
-    │   └── v-1.md
-    ├── pitfalls.md         # carried across rounds
-    └── final.md            # the answer
-```
+## The 10 agents
 
-`final.md` is the thing to read first. It links to the supporting
-artifacts and lists the open pitfalls.
+| Agent | Role | Mode | Can edit |
+|---|---|---|---|
+| `team/sentinel` | run coordinator, drives the engine | primary | yes |
+| `team/crafter` | interactive spec elicitation | primary | ask |
+| `team/orchestrator` | v1 propose/falsify loop | primary | yes |
+| `team/worker` | implements one scoped spec in its own worktree | subagent | yes |
+| `team/proof-worker` | same, for Lean/Coq/Isabelle proofs | subagent | yes |
+| `team/verifier` | the forcing function | subagent | **no** |
+| `team/falsifier` | attacks a candidate | subagent | **no** |
+| `team/scout` | read-only context gathering | subagent | **no** |
+| `team/proposer` | one candidate per invocation | subagent | ask |
+| `team/synthesizer` | merges candidates + critiques | subagent | ask |
 
-## When NOT to use Teamwork
+Leaf agents get `task: deny` — a worker cannot fan out its own swarm. Only the
+sentinel and the v1 orchestrator may invoke subagents.
 
-- A simple, well-scoped coding task ("rename this function", "add
-  this log line", "explain this line"). The default opencode `build`
-  agent is faster.
-- Anything that fits in one model context. Teamwork's overhead is
-  real; you spend tokens on 3-5 candidates when one would have
-  worked.
-- Production deployment. Use the `build` agent for that. Teamwork is
-  for the exploration phase, not the ship phase.
+## The 6 topologies
 
-The orchestrator asks once: "Skipping Teamwork — I'll work as a
-single agent. OK?" before falling back.
-
-## Comparison to upstream
-
-| | Antigravity `/teamwork-preview` | opencode-teamwork v0.2 |
+| Topology | Shape | Use when |
 |---|---|---|
-| Patterns | 5 | 6 (added `small-focused`) |
-| Models | Gemini 3.x only | Any opencode-supported model |
-| Hosting | Closed, Antigravity account | Open source, your own opencode |
-| Cost control | Bundled with Antigravity plan | You pay your provider directly; per-session budget guardrails |
-| Round cap | Dynamic, expensive | Topology-defined, sane defaults |
-| Verification | Anti-leak sandboxed oracles (Spike sandbox, etc.) | Whatever the user has set up; structured JSON reports |
-| DAG engine | Yes | Yes (`plan.dag.json`, topological dispatch) |
-| Worktree isolation | Yes (per agent) | Yes (per agent) |
-| Typed artifact bus | Yes (spec, plan, patch, verification_report) | Yes (same shape, Zod-validated) |
-| Cost tracking | Yes | Yes (`costs.json` per session) |
-| Session checkpoint / resume | Yes | Yes (`state.json` on every transition) |
-| Prompt crafter (9-step wizard) | Yes | Yes (`/teamwork-craft`) |
+| `small-focused` | 1 builder + 1 reviewer loop | one self-contained fix |
+| `iterative-coding` | proposer + falsifier + verify | a bug in a known place |
+| `distributed-coding` | N workers in parallel + verifiers | multi-module change, migration |
+| `long-proof` | strategist + 3-5 searchers + formal checker | math/TCS proof |
+| `massive-proof-swarm` | meta-coordinator + 100+ searchers | open conjecture (opt-in) |
+| `document-review` | chair + 3 critics + aggregator | paper / RFC / audit |
 
-We're not trying to out-Google Google. We're trying to make the
-*pattern* usable. The interesting thing about Teamwork isn't the
-Gemini integration — it's the falsifier loop and the pitfall
-registry. Those are now yours.
+The definition files ship in `dist/cli/templates/patterns/`. The orchestrating
+agents' prompts carry an index of their absolute paths — the names in the prompt
+and the files on disk are generated from one source (`src/policy.ts`), so they
+cannot drift apart.
+
+## When NOT to use this
+
+- A simple, well-scoped task ("rename this function", "add a log line"). The
+  default `build` agent is faster.
+- Anything that fits in one context. Teamwork's overhead is real: you pay for
+  3-5 candidates where one would have worked.
+- Production deployment. This is for the exploration phase, not the ship phase.
+
+## Cost control
+
+`--budget 30` (USD) or a per-topology default. The engine sums recorded cost from
+the event log, warns at 80%, and refuses further dispatch at 100%. A run that hits
+the cap presents partial results and the dead-letter queue instead of retrying
+forever.
+
+## Self-improving runs
+
+The event log is the prerequisite for improving the *policy* rather than the
+models: topologies, model ladders, required checks. The design — attribution,
+typed policy deltas, adversarial falsification of the hypothesis, shadow replay
+on a frozen benchmark, canary + rollback, and the escape-rate metric that keeps
+the loop honest — is in [docs/self-improvement.md](docs/self-improvement.md).
+Nothing in it ships yet; it is written down so it can be built against the log
+that now exists.
 
 ## Development
 
@@ -285,24 +151,29 @@ registry. Those are now yours.
 git clone https://github.com/aditya0si/OpenCode-Team
 cd OpenCode-Team
 bun install
-bun run build
-bun dist/cli/index.js install --print   # test the installer
+bun run verify     # typecheck → unit tests → build → smoke → e2e → plugin integration
 ```
 
-The build emits:
-- `dist/index.js` — the opencode plugin entry (v1).
-- `dist/server.js` — same, for v2 host compatibility.
-- `dist/cli/index.js` — the `opencode-teamwork` CLI.
+| Command | What it proves |
+|---|---|
+| `bun run typecheck` | no type errors |
+| `bun test` | scheduler, event log, report validation, config injection, guard, flags |
+| `bun run e2e` | the whole loop against a real git repo: worktrees, evidence capture, budget, dead-letter, resume, cleanup |
+| `bun run integration` | the built bundle with the hook shapes OpenCode sends: config, commands, tools, guard, compaction |
+| `bun run smoke` | the installer: install / re-install / uninstall / doctor / dry-run |
 
 ## Contributing
 
-PRs welcome. Areas where help is useful:
-- More patterns (security audit, perf optimization, etc.).
-- More presets (Anthropic, Google, OpenAI, etc.).
-- Better verifier heuristics.
-- Smoke tests under `scripts/`.
+Useful places to help:
 
-See `CONTRIBUTING.md` for the conventions.
+- New topologies (security audit, perf work, data migration) — add a pattern file
+  and one entry in `src/policy.ts`.
+- A verification ladder (static → unit → property → integration) so cheap oracles
+  run before the expensive one.
+- The learning loop in `docs/self-improvement.md`, starting with `trace.jsonl`
+  export from the existing event log.
+
+See `CONTRIBUTING.md`.
 
 ## License
 

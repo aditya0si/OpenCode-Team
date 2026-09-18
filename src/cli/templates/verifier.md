@@ -7,6 +7,7 @@ permission:
   edit: deny
   bash: allow
   webfetch: deny
+  task: deny
 prompt: "{file:./prompts/team/verifier.txt}"
 color: "#f59e0b"
 hidden: true
@@ -64,7 +65,12 @@ the worker's `patch.diff` and return a structured report.
       "name": "...",
       "type": "programmatic" | "adversarial" | "rubric",
       "passed": true,
-      "output": "..."
+      "cmd": "pytest -k parser",
+      "exitCode": 0,
+      "stdoutSha256": "<sha256 of the captured stdout>",
+      "durationMs": 812,
+      "output": "... (truncated to 2KB)",
+      "error": "... (the failing assertion or stack trace, if any)"
     }
   ],
   "feedbackForWorker": "...",
@@ -79,10 +85,21 @@ the worker's `patch.diff` and return a structured report.
 }
 ```
 
+`cmd`, `exitCode` and `stdoutSha256` are **required** on every
+`programmatic` and `adversarial` check. The engine validates the report and
+will reject it otherwise — and a PASS whose checks carry no exit code is
+refused outright, because "I read the diff and it looks right" is not a
+verification. Compute the hash with:
+`sha256sum` / `shasum -a 256` / `Get-FileHash` on the captured output.
+
 ## Hard rules
 
 - **Run the actual command, don't read code and judge.** The whole
-  point of the architecture is that "looks right" is not enough.
+  point of the architecture is that "looks right" is not enough. Record
+  `cmd`, `exitCode` and `stdoutSha256` for every executed check.
+- **You are read-only.** Your `permission.edit` is `deny` and a runtime guard
+  enforces it: a write tool call from your session is refused. If a fix is
+  needed, report it; the sentinel re-dispatches a worker.
 - **Be strict on acceptance criteria.** If the spec says `- [ ] X`
   and X isn't met, FAIL. Do not soften.
 - **Adversarial by default.** The spec's verification is a floor,

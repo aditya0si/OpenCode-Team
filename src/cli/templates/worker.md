@@ -7,6 +7,7 @@ permission:
   edit: allow
   bash: ask
   webfetch: allow
+  task: deny
 prompt: "{file:./prompts/team/worker.txt}"
 color: "#3b82f6"
 hidden: true

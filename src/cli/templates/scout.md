@@ -7,6 +7,7 @@ permission:
   edit: deny
   bash: allow
   webfetch: allow
+  task: deny
 prompt: "{file:./prompts/team/scout.txt}"
 color: "#06b6d4"
 hidden: true

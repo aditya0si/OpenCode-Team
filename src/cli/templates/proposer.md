@@ -7,6 +7,7 @@ permission:
   edit: ask
   bash: ask
   webfetch: allow
+  task: deny
 prompt: "{file:./prompts/team/proposer.txt}"
 color: "#3b82f6"
 hidden: true
