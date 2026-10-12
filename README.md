@@ -145,6 +145,30 @@ the loop honest — is in [docs/self-improvement.md](docs/self-improvement.md).
 Nothing in it ships yet; it is written down so it can be built against the log
 that now exists.
 
+## Completion auditor (static-only)
+
+An additive, strictly manual completion auditor. It captures a verifier-owned
+delta snapshot, binds a task whose acceptance criteria come from **trusted,
+human configuration** (never the model), records byte-level artifact
+observations, and renders a deterministic replayable report. It verifies a
+bounded, byte-level claim inside an explicit scope — it is not a semantic
+correctness prover, not a test-suite completeness certifier, and not a
+completion interceptor. No automatic repair.
+
+Three tools: `teamwork_audit_plan`, `teamwork_audit_check`,
+`teamwork_audit_report`, addressed by an opaque `auditId` only. Execution is
+blocked: a model-provided approval is rejected and, without provable human
+approval authority, execution reports `BLOCKED` and runs nothing. Snapshot
+capture is a delta scope (not the whole repo); the same-user store is a declared
+trust assumption with best-effort (no fsync), unsigned integrity, not a sandbox.
+
+Requires an absolute, verifier-owned `auditBaseRoot` outside the candidate. See
+[docs/audit/README.md](docs/audit/README.md) for the full, validated
+configuration and the honest limits. `bun run audit:eval` runs a fixed
+30-fixture **regression** check (writer-authored expectations, metadata-only
+development/held-out split) — a source-repo development command, not a shipped
+scientific evaluation or a package feature.
+
 ## Development
 
 ```bash

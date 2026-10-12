@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "c-multi-required",
+  "category": "complete",
+  "split": "development",
+  "kind": "schema",
+  "title": "Multiple required execution criteria all supported",
+  "label": { "overall": "VERIFIED_WITHIN_SCOPE", "criteria": { "R1": "SUPPORTED", "R2": "SUPPORTED" } },
+  "rationale": "Two independent required execution criteria each have their own clean runner capture, so the overall verdict verifies every required criterion.",
+  "evidence": ["src/audit/verdict.ts#reduceAudit"],
+  "auditInput": {
+    "schemaVersion": 2,
+    "taskId": "eval-task",
+    "taskRevision": "rev-1",
+    "candidateId": "cand-0001",
+    "scope": { "description": "unit scope" },
+    "criteria": [
+      { "id": "R1", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "EXECUTION" },
+      { "id": "R2", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "EXECUTION" }
+    ],
+    "claims": [],
+    "evidence": [
+      { "checkId": "chk-1", "taskId": "eval-task", "candidateId": "cand-0001", "taskRevision": "rev-1", "criterionIds": ["R1"], "kind": "EXECUTION", "origin": "RUNNER_CAPTURED", "completion": "COMPLETED", "result": "PASS", "exitCode": 0 },
+      { "checkId": "chk-2", "taskId": "eval-task", "candidateId": "cand-0001", "taskRevision": "rev-1", "criterionIds": ["R2"], "kind": "EXECUTION", "origin": "RUNNER_CAPTURED", "completion": "COMPLETED", "result": "PASS", "exitCode": 0 }
+    ],
+    "waivers": []
+  }
+}

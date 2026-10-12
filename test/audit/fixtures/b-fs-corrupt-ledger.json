@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "b-fs-corrupt-ledger",
+  "category": "blocker",
+  "split": "development",
+  "kind": "filesystem",
+  "scenario": "fs.ledger.corrupt",
+  "title": "Corrupt ledger fails closed rather than guessing a head",
+  "label": { "overall": "INCOMPLETE_EVIDENCE", "criteria": { "R1": "UNVERIFIED" } },
+  "rationale": "After a valid capture, the persisted store metadata is corrupted without a valid backup; the read path refuses to guess a head and the audit fails closed, never verifying.",
+  "evidence": ["src/audit/evidence-store.ts#readStoreMetadata", "src/audit/evidence-store.ts#recoverInterruptedReplace"]
+}

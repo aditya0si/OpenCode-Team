@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "c-two-artifacts",
+  "category": "complete",
+  "split": "held_out",
+  "kind": "schema",
+  "title": "Two byte-predicate artifact criteria supported",
+  "label": { "overall": "VERIFIED_WITHIN_SCOPE", "criteria": { "R1": "SUPPORTED", "R2": "SUPPORTED" } },
+  "rationale": "Each ARTIFACT criterion registers an explicit path/presence/digest predicate and has a matching trusted artifact observation, so all required criteria are supported.",
+  "evidence": ["src/audit/verdict.ts#artifactPredicateBound"],
+  "auditInput": {
+    "schemaVersion": 2,
+    "taskId": "eval-task",
+    "taskRevision": "rev-1",
+    "candidateId": "cand-0001",
+    "scope": { "description": "unit scope" },
+    "criteria": [
+      { "id": "R1", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "ARTIFACT", "artifactExpectation": { "path": "docs/a.md", "presence": "present", "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" } },
+      { "id": "R2", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "ARTIFACT", "artifactExpectation": { "path": "out/b.bin", "presence": "present", "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" } }
+    ],
+    "claims": [],
+    "evidence": [
+      { "checkId": "chk-1", "taskId": "eval-task", "candidateId": "cand-0001", "taskRevision": "rev-1", "criterionIds": ["R1"], "kind": "ARTIFACT", "origin": "RUNNER_CAPTURED", "completion": "COMPLETED", "result": "PASS" },
+      { "checkId": "chk-2", "taskId": "eval-task", "candidateId": "cand-0001", "taskRevision": "rev-1", "criterionIds": ["R2"], "kind": "ARTIFACT", "origin": "RUNNER_CAPTURED", "completion": "COMPLETED", "result": "PASS" }
+    ],
+    "waivers": []
+  }
+}

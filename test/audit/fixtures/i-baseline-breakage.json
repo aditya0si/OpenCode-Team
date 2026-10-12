@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "i-baseline-breakage",
+  "category": "contradictory_incomplete",
+  "split": "development",
+  "kind": "schema",
+  "title": "Baseline process breakage contradicts a required criterion",
+  "label": { "overall": "NOT_COMPLETE", "criteria": { "R1": "CONTRADICTED" } },
+  "rationale": "SYNTHETIC pre-attributed receipt (no actual baseline test is run): a completed run with result FAIL explicitly attributes a requirement contradiction, so a required criterion is CONTRADICTED and the overall verdict is NOT_COMPLETE.",
+  "evidence": ["src/audit/verdict.ts#isCompletedFail"],
+  "auditInput": {
+    "schemaVersion": 2,
+    "taskId": "eval-task",
+    "taskRevision": "rev-1",
+    "candidateId": "cand-0001",
+    "scope": { "description": "unit scope" },
+    "criteria": [
+      { "id": "R1", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "EXECUTION" }
+    ],
+    "claims": [],
+    "evidence": [
+      { "checkId": "chk-1", "taskId": "eval-task", "candidateId": "cand-0001", "taskRevision": "rev-1", "criterionIds": ["R1"], "kind": "EXECUTION", "origin": "RUNNER_CAPTURED", "completion": "COMPLETED", "result": "FAIL", "exitCode": 1 }
+    ],
+    "waivers": []
+  }
+}

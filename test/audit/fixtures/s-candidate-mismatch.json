@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "s-candidate-mismatch",
+  "category": "stale_injection",
+  "split": "development",
+  "kind": "schema",
+  "title": "Evidence bound to another candidate makes the audit stale",
+  "label": { "overall": "STALE", "criteria": { "R1": "UNVERIFIED" } },
+  "rationale": "Evidence pinned to a different candidateId cannot certify this candidate; it is ignored as stale and the overall verdict is STALE.",
+  "evidence": ["src/audit/verdict.ts#isStale"],
+  "auditInput": {
+    "schemaVersion": 2,
+    "taskId": "eval-task",
+    "taskRevision": "rev-1",
+    "candidateId": "cand-0001",
+    "scope": { "description": "unit scope" },
+    "criteria": [
+      { "id": "R1", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "EXECUTION" }
+    ],
+    "claims": [],
+    "evidence": [
+      { "checkId": "chk-1", "taskId": "eval-task", "candidateId": "cand-9999", "taskRevision": "rev-1", "criterionIds": ["R1"], "kind": "EXECUTION", "origin": "RUNNER_CAPTURED", "completion": "COMPLETED", "result": "PASS", "exitCode": 0 }
+    ],
+    "waivers": []
+  }
+}

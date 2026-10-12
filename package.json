@@ -25,6 +25,10 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
+    "./plugin": {
+      "import": "./dist/plugin.js",
+      "types": "./dist/audit-plugin-entry.d.ts"
+    },
     "./server": {
       "import": "./dist/server.js"
     },
@@ -45,6 +49,10 @@
     },
     "./artifacts": {
       "import": "./dist/artifacts.js"
+    },
+    "./audit/evaluation": {
+      "import": "./dist/audit/evaluation.js",
+      "types": "./dist/audit/evaluation.d.ts"
     }
   },
   "bin": "./dist/cli/index.js",
@@ -61,12 +69,14 @@
   "scripts": {
     "clean": "bun -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true })\"",
     "build:plugin": "bun build src/index.ts --outfile dist/index.js --target node --format esm --external @opencode-ai/plugin --external @opencode-ai/sdk --external zod",
+    "build:plugin-entry": "bun build src/audit-plugin-entry.ts --outfile dist/plugin.js --target node --format esm --external @opencode-ai/plugin --external @opencode-ai/sdk --external zod",
     "build:server": "bun build src/index.ts --outfile dist/server.js --target node --format esm --external zod",
     "build:cli": "bun build src/cli/index.ts --outdir dist/cli --target node --format esm --external @opencode-ai/plugin --external @opencode-ai/sdk --external zod",
     "build:templates": "bun build src/templates.ts --outfile dist/templates.js --target node --format esm --external zod",
     "build:support": "bun build src/worktree.ts src/cost.ts src/state.ts src/artifacts.ts src/events.ts src/engine.ts src/policy.ts src/guard.ts src/tools.ts --outdir dist --root src --target node --format esm --external @opencode-ai/plugin --external @opencode-ai/sdk --external zod",
+    "build:evaluation": "bun build src/audit/evaluation.ts --outfile dist/audit/evaluation.js --target node --format esm --external @opencode-ai/plugin --external @opencode-ai/sdk --external zod",
     "build:assets": "bun -e \"import { cpSync, mkdirSync } from 'node:fs'; mkdirSync('dist/cli', { recursive: true }); cpSync('src/cli/templates', 'dist/cli/templates', { recursive: true });\"",
-    "build": "bun run clean && bun run build:plugin && bun run build:server && bun run build:cli && bun run build:templates && bun run build:support && bun run build:assets && tsc --emitDeclarationOnly",
+    "build": "bun run clean && bun run build:plugin && bun run build:plugin-entry && bun run build:server && bun run build:cli && bun run build:templates && bun run build:support && bun run build:evaluation && bun run build:assets && tsc --emitDeclarationOnly",
     "prepare": "bun run build",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
@@ -74,6 +84,9 @@
     "integration": "bun scripts/plugin-integration.ts",
     "dev": "bun run build && opencode",
     "smoke": "bun scripts/smoke.ts",
+    "audit:eval": "bun scripts/audit-eval.ts",
+    "audit:host": "bun scripts/audit-host-integration.ts",
+    "audit:docker": "bun scripts/audit-runner-integration.ts",
     "verify": "bun run typecheck && bun run test && bun run build && bun run smoke && bun run e2e && bun run integration",
     "prepublishOnly": "bun run verify",
     "release:patch": "npm version patch",

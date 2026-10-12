@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "i-missing-required",
+  "category": "contradictory_incomplete",
+  "split": "development",
+  "kind": "schema",
+  "title": "Required criterion with no evidence is incomplete, never verified",
+  "label": { "overall": "INCOMPLETE_EVIDENCE", "criteria": { "R1": "UNVERIFIED" } },
+  "rationale": "A required criterion with no mapped evidence cannot be supported; the overall verdict is INCOMPLETE_EVIDENCE and the missing requirement stays visible.",
+  "evidence": ["src/audit/verdict.ts#resolveCriterion"],
+  "auditInput": {
+    "schemaVersion": 2,
+    "taskId": "eval-task",
+    "taskRevision": "rev-1",
+    "candidateId": "cand-0001",
+    "scope": { "description": "unit scope" },
+    "criteria": [
+      { "id": "R1", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "EXECUTION" }
+    ],
+    "claims": [],
+    "evidence": [],
+    "waivers": []
+  }
+}

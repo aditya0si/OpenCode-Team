@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "c-fs-artifact-docs-valid",
+  "category": "complete",
+  "split": "development",
+  "kind": "filesystem",
+  "scenario": "fs.artifact.valid",
+  "title": "REAL byte-predicate docs/artifact task verified end to end",
+  "label": { "overall": "VERIFIED_WITHIN_SCOPE", "criteria": { "R1": "SUPPORTED" } },
+  "rationale": "A documents/artifact task whose registered byte-level predicate (exact path, presence, digest) is satisfied by a real verifier-owned snapshot observation; this is the one bounded condition the static flow can honestly verify.",
+  "evidence": ["src/audit/snapshot.ts#captureSnapshot", "src/audit/evidence-store.ts#collectArtifactObservation", "src/audit/report.ts#replayAudit"]
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "i-imported-only",
+  "category": "contradictory_incomplete",
+  "split": "development",
+  "kind": "schema",
+  "title": "Imported evidence is recorded but never decisive",
+  "label": { "overall": "INCOMPLETE_EVIDENCE", "criteria": { "R1": "UNVERIFIED" } },
+  "rationale": "An IMPORTED receipt has unknown provenance; the pure core records it as an observation and never supports or contradicts the requirement, leaving it UNVERIFIED.",
+  "evidence": ["src/audit/verdict.ts#resolveCriterion", "src/audit/verdict.ts#buildObservations"],
+  "auditInput": {
+    "schemaVersion": 2,
+    "taskId": "eval-task",
+    "taskRevision": "rev-1",
+    "candidateId": "cand-0001",
+    "scope": { "description": "unit scope" },
+    "criteria": [
+      { "id": "R1", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "EXECUTION" }
+    ],
+    "claims": [],
+    "evidence": [
+      { "checkId": "chk-1", "taskId": "eval-task", "candidateId": "cand-0001", "taskRevision": "rev-1", "criterionIds": ["R1"], "kind": "EXECUTION", "origin": "IMPORTED", "completion": "COMPLETED", "result": "PASS", "exitCode": 0 }
+    ],
+    "waivers": []
+  }
+}

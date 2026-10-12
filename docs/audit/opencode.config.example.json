@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    [
+      "<PLUGIN_ENTRY_FILE_URL>",
+      {
+        "auditBaseRoot": "<ABSOLUTE_AUDIT_BASE_ROOT>",
+        "auditConfirmedTaskFile": "<ABSOLUTE_CONFIRMED_TASK_FILE>"
+      }
+    ]
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "c-exec-pass",
+  "category": "complete",
+  "split": "development",
+  "kind": "schema",
+  "title": "Execution criterion satisfied by a clean runner capture",
+  "label": { "overall": "VERIFIED_WITHIN_SCOPE", "criteria": { "R1": "SUPPORTED" } },
+  "rationale": "A required EXECUTION criterion with a trusted RUNNER_CAPTURED COMPLETED/PASS receipt and exit code 0 is the only decisive shape the pure core accepts; every required criterion is supported.",
+  "evidence": ["src/audit/verdict.ts#resolveCriterion", "src/audit/verdict.ts#processExitSatisfied"],
+  "auditInput": {
+    "schemaVersion": 2,
+    "taskId": "eval-task",
+    "taskRevision": "rev-1",
+    "candidateId": "cand-0001",
+    "scope": { "description": "unit scope" },
+    "criteria": [
+      { "id": "R1", "span": { "text": "run the build", "start": 0, "end": 13 }, "required": true, "acceptanceType": "EXECUTION" }
+    ],
+    "claims": [],
+    "evidence": [
+      { "checkId": "chk-1", "taskId": "eval-task", "candidateId": "cand-0001", "taskRevision": "rev-1", "criterionIds": ["R1"], "kind": "EXECUTION", "origin": "RUNNER_CAPTURED", "completion": "COMPLETED", "result": "PASS", "exitCode": 0 }
+    ],
+    "waivers": []
+  }
+}

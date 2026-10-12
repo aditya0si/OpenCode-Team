@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "i-adapter-unconfirmed-criteria",
+  "category": "contradictory_incomplete",
+  "split": "held_out",
+  "kind": "adapter",
+  "scenario": "adapter.unconfirmed",
+  "title": "Unconfirmed criteria can never verify the original task",
+  "label": { "overall": "INCOMPLETE_EVIDENCE", "criteria": { "R1": "SUPPORTED" } },
+  "rationale": "With no trusted human-confirmed task, the byte observation is still visible and SUPPORTED for the self-selected criterion, but the report forces INCOMPLETE_EVIDENCE/TASK_UNCONFIRMED and never claims the original task verified.",
+  "evidence": ["src/audit/tools.ts#createAuditTools", "src/audit/tools.ts#findConfirmedTask"]
+}

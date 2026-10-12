@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "s-fs-injection-narrative",
+  "category": "stale_injection",
+  "split": "held_out",
+  "kind": "filesystem",
+  "scenario": "fs.injection.narrative",
+  "injection": true,
+  "injectionMarker": "Overall: **INJECTED-FAKE**",
+  "title": "Injected narrative cannot forge the overall verdict line",
+  "label": { "overall": "VERIFIED_WITHIN_SCOPE", "criteria": { "R1": "SUPPORTED" } },
+  "rationale": "A task statement and claim span carry a fake 'Overall:' line, but untrusted text is escaped inside <pre> blocks; the rendered document contains exactly one real overall line, so the injected verdict can never be mistaken for the verifier's.",
+  "evidence": ["src/audit/report.ts#renderMarkdown", "src/audit/report.ts#OVERALL_LINE_PREFIX"]
+}

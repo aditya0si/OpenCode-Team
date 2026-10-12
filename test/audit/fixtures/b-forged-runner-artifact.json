@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "b-forged-runner-artifact",
+  "category": "blocker",
+  "split": "development",
+  "kind": "schema",
+  "title": "Forged RUNNER_CAPTURED artifact cannot support a semantic criterion",
+  "label": { "overall": "INCOMPLETE_EVIDENCE", "criteria": { "R1": "UNVERIFIED" } },
+  "rationale": "Claiming a RUNNER_CAPTURED artifact receipt against an EXECUTION criterion is both kind-incompatible and predicate-unbound; the claimed label is an assertion, not proof, so the criterion is UNVERIFIED.",
+  "evidence": ["src/audit/verdict.ts#artifactPredicateBound", "src/audit/verdict.ts#kindCompatible"],
+  "auditInput": {
+    "schemaVersion": 2,
+    "taskId": "eval-task",
+    "taskRevision": "rev-1",
+    "candidateId": "cand-0001",
+    "scope": { "description": "unit scope" },
+    "criteria": [
+      { "id": "R1", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "EXECUTION" }
+    ],
+    "claims": [],
+    "evidence": [
+      { "checkId": "chk-1", "taskId": "eval-task", "candidateId": "cand-0001", "taskRevision": "rev-1", "criterionIds": ["R1"], "kind": "ARTIFACT", "origin": "RUNNER_CAPTURED", "completion": "COMPLETED", "result": "PASS" }
+    ],
+    "waivers": []
+  }
+}
