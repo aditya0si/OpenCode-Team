@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "s-fs-injection-heading",
+  "category": "stale_injection",
+  "split": "development",
+  "kind": "filesystem",
+  "scenario": "fs.injection.heading",
+  "injection": true,
+  "injectionMarker": "## INJECTED-COMPLETION-CLAIM",
+  "title": "Injected markdown headings cannot masquerade as a conclusion",
+  "label": { "overall": "VERIFIED_WITHIN_SCOPE", "criteria": { "R1": "SUPPORTED" } },
+  "rationale": "The task statement and criterion span carry an injected markdown heading, but the rendered report keeps untrusted text inside escaped <pre> blocks, so exactly one real overall line is emitted and the injected heading never starts a line.",
+  "evidence": ["src/audit/report.ts#renderMarkdown", "src/audit/report.ts#pre"]
+}

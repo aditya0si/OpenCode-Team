@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "c-claim-supported",
+  "category": "complete",
+  "split": "held_out",
+  "kind": "schema",
+  "title": "A claim mapped to a supported criterion resolves supported",
+  "label": { "overall": "VERIFIED_WITHIN_SCOPE", "criteria": { "R1": "SUPPORTED" } },
+  "rationale": "The claim references a criterion whose resolved state is SUPPORTED, so the claim resolves SUPPORTED without altering the overall verdict.",
+  "evidence": ["src/audit/verdict.ts#resolveClaim"],
+  "auditInput": {
+    "schemaVersion": 2,
+    "taskId": "eval-task",
+    "taskRevision": "rev-1",
+    "candidateId": "cand-0001",
+    "scope": { "description": "unit scope" },
+    "criteria": [
+      { "id": "R1", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "EXECUTION" }
+    ],
+    "claims": [
+      { "id": "CL1", "span": { "text": "claim", "start": 0, "end": 5 }, "criterionIds": ["R1"] }
+    ],
+    "evidence": [
+      { "checkId": "chk-1", "taskId": "eval-task", "candidateId": "cand-0001", "taskRevision": "rev-1", "criterionIds": ["R1"], "kind": "EXECUTION", "origin": "RUNNER_CAPTURED", "completion": "COMPLETED", "result": "PASS", "exitCode": 0 }
+    ],
+    "waivers": []
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "total": 30,
+  "byCategory": {
+    "complete": 10,
+    "contradictory_incomplete": 10,
+    "blocker": 5,
+    "stale_injection": 5
+  },
+  "ids": [
+    "c-exec-pass",
+    "c-suite-complete",
+    "c-multi-required",
+    "c-optional-unsupported",
+    "c-execution-stronger-artifact",
+    "c-waiver-annotation",
+    "c-suite-approved-skips",
+    "c-two-artifacts",
+    "c-claim-supported",
+    "c-fs-artifact-docs-valid",
+    "i-missing-required",
+    "i-baseline-breakage",
+    "i-imported-only",
+    "i-model-asserted",
+    "i-empty-suite",
+    "i-all-skipped-suite",
+    "i-semantic-existing-file",
+    "i-wrong-behavior-green-tests",
+    "i-fs-demo-fallback-payload",
+    "i-adapter-unconfirmed-criteria",
+    "b-criterion-blocked",
+    "b-forged-runner-artifact",
+    "b-fs-corrupt-ledger",
+    "b-fs-path-escape",
+    "b-fs-secret-canary",
+    "s-taskid-mismatch",
+    "s-candidate-mismatch",
+    "s-fs-changed-input",
+    "s-fs-injection-heading",
+    "s-fs-injection-narrative"
+  ]
+}

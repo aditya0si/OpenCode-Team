@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "i-fs-demo-fallback-payload",
+  "category": "contradictory_incomplete",
+  "split": "held_out",
+  "kind": "filesystem",
+  "scenario": "fs.artifact.demo_fallback",
+  "title": "Demo-fallback payload fails the byte-level predicate",
+  "label": { "overall": "INCOMPLETE_EVIDENCE", "criteria": { "R1": "BLOCKED" } },
+  "rationale": "The candidate shipped a demo payload whose bytes differ from the registered requirement; the store-owned observation is BLOCKED (never a synthetic PASS), so the required criterion is not supported.",
+  "evidence": ["src/audit/evidence-store.ts#evaluateArtifactPredicate", "src/audit/verdict.ts#resolveCriterion"]
+}

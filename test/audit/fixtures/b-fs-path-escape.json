@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "b-fs-path-escape",
+  "category": "blocker",
+  "split": "held_out",
+  "kind": "filesystem",
+  "scenario": "fs.path.escape",
+  "title": "Path escape outside the snapshot is denied",
+  "label": { "overall": "INCOMPLETE_EVIDENCE", "criteria": { "R1": "UNVERIFIED" } },
+  "rationale": "A criterion whose predicate names a traversal path cannot be observed: the store refuses an unsafe/unregistered artifact path and records no supporting evidence, so the criterion is UNVERIFIED.",
+  "evidence": ["src/audit/evidence-store.ts#evaluateArtifactPredicate", "src/audit/evidence-store.ts#collectArtifactObservation"]
+}

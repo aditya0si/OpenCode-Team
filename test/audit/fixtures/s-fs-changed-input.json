@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "s-fs-changed-input",
+  "category": "stale_injection",
+  "split": "held_out",
+  "kind": "filesystem",
+  "scenario": "fs.stale.changed_input",
+  "title": "Changed input invalidates a previously valid capture",
+  "label": { "overall": "STALE", "criteria": { "R1": "SUPPORTED" } },
+  "rationale": "After a valid artifact capture, the candidate file is modified; a freshness re-observation of the declared scope reports drift and the report is STALE, not a stale pass.",
+  "evidence": ["src/audit/snapshot.ts#checkFreshness", "src/audit/tools.ts#readFreshness"]
+}

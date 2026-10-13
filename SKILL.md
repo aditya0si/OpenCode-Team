@@ -143,6 +143,27 @@ The `google` preset matches what Teamwork's actual research used (Flash + Pro 3.
 
 Custom per-role model selection is available via the `custom` picker at install time with live suggestions, or edit your `opencode.json` by hand later.
 
+## Completion auditor (static-only)
+
+An additive, manual completion auditor ships with the plugin. It captures a
+verifier-owned delta snapshot of the candidate, binds a task whose acceptance
+criteria come from trusted human configuration (never the model), records
+byte-level artifact observations, and renders a deterministic, replayable report.
+
+Three tools — `teamwork_audit_plan`, `teamwork_audit_check`,
+`teamwork_audit_report` — addressed by an opaque `auditId` only. Static-only by
+default: execution is blocked (a model-provided approval is rejected; absent
+provable human approval authority it reports BLOCKED and runs nothing). Capture is
+a delta scope, not the whole repo; the same-user store is a declared trust
+assumption with best-effort, unsigned integrity, not a sandbox. No automated
+repair or completion interception.
+
+Requires an absolute, verifier-owned `auditBaseRoot` outside the candidate; with
+none configured the tools fail closed with `SETUP_REQUIRED`. Full configuration
+and limits: `docs/audit/README.md` (in the source repo). Evaluation: a fixed
+30-fixture **regression** check (`bun run audit:eval`) that runs only from the
+source repo and is not a shipped scientific evaluation.
+
 ## Install
 
 ```bash

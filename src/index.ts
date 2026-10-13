@@ -21,6 +21,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Plugin } from "@opencode-ai/plugin";
+import { createAuditTools, createHostPlannerModel, ConfirmedTaskSchema, type ConfirmedTask } from "./audit/tools.js";
 import { deriveSession, readEvents, verifyChain } from "./events.js";
 import { RoleRegistry } from "./guard.js";
 import { assertTopologiesResolve, DEFAULT_POLICY, isTopology, TOPOLOGY_NAMES } from "./policy.js";
@@ -134,9 +135,70 @@ function readRunPointer(projectDir: string): RunPointer | null {
   }
 }
 
-export const TeamPlugin: Plugin = async (ctx) => {
+/**
+ * Load trusted, human-confirmed task bindings from plugin options (or a
+ * documented JSON file path). The model can never supply these: they are read
+ * from configuration the host owns, so a self-selected easier criterion cannot
+ * masquerade as a confirmed task. An unreadable/invalid source yields no
+ * confirmed task (fail-safe: the audit is bound UNCONFIRMED and never verifies
+ * the original task).
+ */
+function loadConfirmedTasks(options: Record<string, unknown> | undefined): ConfirmedTask[] {
+  const out: ConfirmedTask[] = [];
+  const inline = options?.["auditConfirmedTasks"];
+  if (Array.isArray(inline)) {
+    for (const item of inline) {
+      const parsed = ConfirmedTaskSchema.safeParse(item);
+      if (parsed.success) out.push(parsed.data);
+    }
+  }
+  const file = options?.["auditConfirmedTaskFile"];
+  if (typeof file === "string" && file.length > 0) {
+    try {
+      const value: unknown = JSON.parse(readFileSync(file, "utf-8"));
+      const candidates = Array.isArray(value) ? value : [value];
+      for (const item of candidates) {
+        const parsed = ConfirmedTaskSchema.safeParse(item);
+        if (parsed.success) out.push(parsed.data);
+      }
+    } catch {
+      // fail-safe: no confirmed task is loaded
+    }
+  }
+  return out;
+}
+
+export const TeamPlugin: Plugin = async (ctx, options) => {
   const roles = new RoleRegistry();
   const runBySession = new Map<string, string>(); // opencode sessionID -> run sessionId
+
+  // Additive audit adapter. Off by default beyond static artifact observation;
+  // it is configured only through trusted plugin options, never model input.
+  const auditBaseRoot =
+    typeof options?.["auditBaseRoot"] === "string" ? (options["auditBaseRoot"] as string) : undefined;
+  const auditPolicy =
+    options?.["auditPolicy"] && typeof options["auditPolicy"] === "object"
+      ? (options["auditPolicy"] as Record<string, unknown>)
+      : undefined;
+  const auditPlannerModel =
+    options?.["auditPlanner"] === true
+      ? createHostPlannerModel(ctx.client, {
+          ...(typeof options["auditProviderID"] === "string"
+            ? { providerID: options["auditProviderID"] as string }
+            : {}),
+          ...(typeof options["auditModelID"] === "string"
+            ? { modelID: options["auditModelID"] as string }
+            : {}),
+        })
+      : null;
+  const auditConfirmedTasks = loadConfirmedTasks(options);
+  const auditTools = createAuditTools({
+    directory: ctx.directory,
+    ...(auditBaseRoot ? { auditBaseRoot } : {}),
+    ...(auditPolicy ? { policy: auditPolicy } : {}),
+    plannerModel: auditPlannerModel,
+    ...(auditConfirmedTasks.length > 0 ? { confirmedTasks: auditConfirmedTasks } : {}),
+  });
 
   return {
     /**
@@ -179,8 +241,8 @@ export const TeamPlugin: Plugin = async (ctx) => {
       }
     },
 
-    /** The run engine, as tools. */
-    tool: TEAMWORK_TOOLS,
+    /** The run engine plus the additive manual audit tools. */
+    tool: { ...TEAMWORK_TOOLS, ...auditTools },
 
     /** Remember which agent owns which session (drives the write guard). */
     "chat.message": async (input) => {

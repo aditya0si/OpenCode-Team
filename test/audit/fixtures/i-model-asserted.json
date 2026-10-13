@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "i-model-asserted",
+  "category": "contradictory_incomplete",
+  "split": "development",
+  "kind": "schema",
+  "title": "Model-asserted evidence is not captured execution evidence",
+  "label": { "overall": "INCOMPLETE_EVIDENCE", "criteria": { "R1": "UNVERIFIED" } },
+  "rationale": "A MODEL_ASSERTED record is prose, not a verifier-owned capture; it can never support a requirement, so the criterion stays UNVERIFIED.",
+  "evidence": ["src/audit/verdict.ts#buildObservations"],
+  "auditInput": {
+    "schemaVersion": 2,
+    "taskId": "eval-task",
+    "taskRevision": "rev-1",
+    "candidateId": "cand-0001",
+    "scope": { "description": "unit scope" },
+    "criteria": [
+      { "id": "R1", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "EXECUTION" }
+    ],
+    "claims": [],
+    "evidence": [
+      { "checkId": "chk-1", "taskId": "eval-task", "candidateId": "cand-0001", "taskRevision": "rev-1", "criterionIds": ["R1"], "kind": "EXECUTION", "origin": "MODEL_ASSERTED", "completion": "COMPLETED", "result": "PASS", "exitCode": 0 }
+    ],
+    "waivers": []
+  }
+}

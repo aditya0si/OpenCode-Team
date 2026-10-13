@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "taskId": "task-6",
+  "taskRevision": "rev-1",
+  "statement": "Deliver artifact.txt with the exact payload.",
+  "criteria": [
+    {
+      "id": "R1",
+      "span": { "text": "artifact.txt", "start": 8, "end": 20, "redacted": false },
+      "required": true,
+      "acceptanceType": "ARTIFACT",
+      "artifactExpectation": {
+        "path": "artifact.txt",
+        "presence": "present",
+        "digest": "<ARTIFACT_SHA256>"
+      }
+    }
+  ]
+}

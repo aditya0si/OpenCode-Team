@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "c-optional-unsupported",
+  "category": "complete",
+  "split": "development",
+  "kind": "schema",
+  "title": "Optional criterion without evidence stays visible but does not fail",
+  "label": { "overall": "VERIFIED_WITHIN_SCOPE", "criteria": { "R1": "SUPPORTED", "R2": "UNVERIFIED" } },
+  "rationale": "Only required criteria gate the overall verdict; an optional criterion with no evidence is UNVERIFIED and remains visible without failing required work.",
+  "evidence": ["src/audit/verdict.ts#reduceAudit"],
+  "auditInput": {
+    "schemaVersion": 2,
+    "taskId": "eval-task",
+    "taskRevision": "rev-1",
+    "candidateId": "cand-0001",
+    "scope": { "description": "unit scope" },
+    "criteria": [
+      { "id": "R1", "span": { "text": "req", "start": 0, "end": 3 }, "required": true, "acceptanceType": "EXECUTION" },
+      { "id": "R2", "span": { "text": "opt", "start": 0, "end": 3 }, "required": false, "acceptanceType": "EXECUTION" }
+    ],
+    "claims": [],
+    "evidence": [
+      { "checkId": "chk-1", "taskId": "eval-task", "candidateId": "cand-0001", "taskRevision": "rev-1", "criterionIds": ["R1"], "kind": "EXECUTION", "origin": "RUNNER_CAPTURED", "completion": "COMPLETED", "result": "PASS", "exitCode": 0 }
+    ],
+    "waivers": []
+  }
+}
