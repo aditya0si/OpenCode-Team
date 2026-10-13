@@ -1,0 +1,46 @@
+{
+  "documentedRelease": "0.2.1",
+  "releaseCommit": "70c1dbaa07819f0b9612f032d27ca5ffd626fe04",
+  "packageName": "opencode-teamwork",
+  "pluginPin": "opencode-teamwork@0.2.1",
+  "installerWrites": "opencode-teamwork@latest",
+  "anthropicModel": "anthropic/claude-sonnet-4-5",
+  "roleIds": [
+    "team/crafter",
+    "team/sentinel",
+    "team/worker",
+    "team/proof-worker",
+    "team/verifier",
+    "team/orchestrator",
+    "team/proposer",
+    "team/falsifier",
+    "team/synthesizer",
+    "team/scout"
+  ],
+  "commandIds": [
+    "/teamwork",
+    "/teamwork-craft",
+    "/team-orchestrate",
+    "/team-propose",
+    "/team-falsify",
+    "/team-synthesize",
+    "/team-review"
+  ],
+  "patternIds": [
+    "small-focused",
+    "iterative-coding",
+    "distributed-coding",
+    "document-review",
+    "long-proof",
+    "massive-proof-swarm"
+  ],
+  "presetIds": ["anthropic", "team", "google", "openai", "free"],
+  "unreleasedPresets": ["opencode-free", "opencode-go", "opencode-zen"],
+  "uninstallDroppedKeys": ["provider", "theme", "permission"],
+  "runtimeModelConfigEffective": false,
+  "installPreview": "npx opencode-teamwork@0.2.1 install --preset anthropic --print",
+  "installWrite": "npx opencode-teamwork@0.2.1 install --preset anthropic",
+  "installBunx": "bunx opencode-teamwork@0.2.1 install --preset anthropic",
+  "launch": "opencode",
+  "forbiddenInReleasedInstall": ["--preset custom", "0.3.0", "opencode-free", "opencode-go", "opencode-zen"]
+}

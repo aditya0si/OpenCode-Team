@@ -1,0 +1,20 @@
+{
+  "name": "opencode-teamwork-landing",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Isolated static landing page for opencode-teamwork. Never published; owns its own lockfile.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "build": "node scripts/build.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "test:browser": "playwright test",
+    "serve": "node scripts/serve.mjs",
+    "verify": "npm run test && npm run build && npm run check:links && npm run test:browser"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.64.0",
+    "parse5": "8.0.1"
+  }
+}
