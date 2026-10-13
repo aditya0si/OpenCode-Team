@@ -1,0 +1,9 @@
+# Bun configuration.
+#
+# The landing site under site/ is an isolated, private subproject with its own
+# package, lockfile and runners (`node --test` for unit tests, Playwright for
+# browser tests via `npm --prefix site run verify`). Its test files must not be
+# picked up by the root `bun test` scan: the Playwright specs cannot run under
+# `bun test`, and the site's own gate already runs them with the right runner.
+[test]
+pathIgnorePatterns = ["**/site/**"]
