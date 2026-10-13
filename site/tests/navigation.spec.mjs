@@ -62,11 +62,11 @@ test("release_vs_development_is_visible_without_interaction", async ({ page }) =
   for (const label of ["Released", "Not guaranteed", "Development"]) {
     await expect(matrix.getByText(label, { exact: true })).toBeVisible();
   }
-  await expect(matrix.getByText("unpublished", { exact: false })).toBeVisible();
+  await expect(matrix.getByText("not part of a published release", { exact: false })).toBeVisible();
 
-  const development = page.getByText("Unpublished development branch", { exact: false });
+  const development = page.getByText("main branch (development, not released)", { exact: false });
   await expect(development).toBeVisible();
-  await expect(development).toHaveAttribute("href", /teamwork-review-build/);
+  await expect(development).toHaveAttribute("href", /\/tree\/main$/);
 
   // The development row must never be paired with an install/copy control.
   const devRowControls = await page.evaluate(() => {

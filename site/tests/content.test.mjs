@@ -99,7 +99,7 @@ test("inventories_match_reviewed_source_at_release_commit", () => {
   assert.equal(pkg.version, fixture.documentedRelease);
 
   // Presets are evidence too: they must come from the committed CLI, not from
-  // the dirty working tree (which adds unpublished opencode-* presets).
+  // the working tree (which adds the opencode-* presets absent from the 0.2.1 release).
   assert.deepEqual(releasePresetNames(commit), fixture.presetIds);
 });
 
@@ -165,7 +165,7 @@ test("install_examples_use_released_preset", () => {
 
   assert.deepEqual(fixture.presetIds, ["anthropic", "team", "google", "openai", "free"]);
   // The advertised presets are exactly the presets committed in the release,
-  // never the unpublished opencode-* presets present in the dirty working tree.
+  // never the opencode-* presets merged on main but absent from the 0.2.1 release.
   assert.deepEqual(releasePresetNames(fixture.releaseCommit), fixture.presetIds);
 });
 
@@ -203,17 +203,20 @@ test("configuration_is_valid_complete_json", () => {
 test("development_never_appears_as_released", () => {
   const devRow = landingContent.releaseRows.find((r) => r.status === "development");
   assert.ok(devRow, "a development release row is required");
-  assert.match(devRow.text, /unpublished/i);
+  // v0.3.0 is merged on main but not part of a published release; the row must
+  // say so explicitly rather than implying the development code is released.
+  assert.match(devRow.text, /merged on the repository's main branch/i);
+  assert.match(devRow.text, /not part of a published release/i);
 
   for (const snippet of landingContent.snippets) {
     assert.ok(
       !snippet.text.includes("0.3.0"),
-      `snippet ${snippet.id} must not advertise the unpublished development version`,
+      `snippet ${snippet.id} must not advertise the v0.3.0 development version`,
     );
   }
 
   assert.match(landingContent.links.development.label, /development/i);
-  assert.match(landingContent.links.development.href, /teamwork-review-build/);
+  assert.match(landingContent.links.development.href, /\/tree\/main$/);
 });
 
 test("runtime_model_configuration_is_not_promised_as_effective", () => {

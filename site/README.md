@@ -8,9 +8,9 @@ The page documents release **0.2.1**, reviewed against the source at commit
 `70c1dbaa07819f0b9612f032d27ca5ffd626fe04`. The published registry artifact's
 `gitHead` differs from that local commit, so this page claims only that reviewed
 **behavior** matches the source — never that the published build is a
-byte-identical artifact. Workflows are described as prompt-owned; the
-unpublished `teamwork-review-build` v0.3.0 effort is labelled development-only
-and is never paired with an install control.
+byte-identical artifact. Workflows are described as prompt-owned; the v0.3.0
+engine effort — merged on `main`, not part of a published release — is labelled
+development and is never paired with an install control.
 
 ## Layout
 

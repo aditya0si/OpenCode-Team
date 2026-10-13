@@ -320,7 +320,7 @@ export const landingContent = {
       navLabel: "Release status",
       heading: "Release status",
       paragraphs: [
-        "Release status is stated in three parts so the shipped package is never confused with prompt-owned behavior or unpublished work.",
+        "Release status is stated in three parts so the shipped package is never confused with prompt-owned behavior or development work that is not part of a published release.",
       ],
     },
     {
@@ -374,9 +374,9 @@ export const landingContent = {
     },
     {
       status: "development",
-      title: "Development only",
+      title: "Development on main",
       text:
-        "v0.3.0 engine work on the teamwork-review-build branch is unpublished. It is not attached to any install command, and no tests or reliability claims are made for it here.",
+        "The v0.3.0 engine work is merged on the repository's main branch, but it is not part of a published release: npm's latest release remains 0.2.1. It is not attached to any install command, and no tests or reliability claims are made for it here.",
     },
   ],
 
@@ -393,8 +393,8 @@ export const landingContent = {
       href: `${REPO}/tree/${releaseCommit}/src/cli/templates/commands`,
     },
     development: {
-      label: "Unpublished development branch",
-      href: `${REPO}/tree/teamwork-review-build`,
+      label: "main branch (development, not released)",
+      href: `${REPO}/tree/main`,
     },
   },
 
