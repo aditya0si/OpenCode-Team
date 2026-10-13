@@ -73,6 +73,54 @@ interface Preset {
 
 const PRESETS: Preset[] = [
   {
+    name: "opencode-free",
+    description: "OpenCode Free tier — Hy3 (architect), MiMo v2.5 (coding), Spark (verifier). Zero cost.",
+    agents: {
+      "team/crafter": "opencode/hy3",
+      "team/sentinel": "opencode/hy3",
+      "team/worker": "opencode/mimo-v2.5",
+      "team/proof-worker": "opencode/hy3",
+      "team/verifier": "opencode/muse-spark-1.2-contributor",
+      "team/orchestrator": "opencode/hy3",
+      "team/proposer": "opencode/mimo-v2.5",
+      "team/falsifier": "opencode/mimo-v2.5",
+      "team/synthesizer": "opencode/hy3",
+      "team/scout": "opencode/muse-spark-1.2-contributor",
+    },
+  },
+  {
+    name: "opencode-go",
+    description: "OpenCode Go ($10/mo curated) — DeepSeek V4 Pro, MiMo v2.5, Kimi K3, Flash.",
+    agents: {
+      "team/crafter": "opencode-go/deepseek-v4-pro",
+      "team/sentinel": "opencode-go/kimi-k3",
+      "team/worker": "opencode-go/mimo-v2.5",
+      "team/proof-worker": "opencode-go/kimi-k3",
+      "team/verifier": "opencode-go/deepseek-v4-flash",
+      "team/orchestrator": "opencode-go/kimi-k3",
+      "team/proposer": "opencode-go/qwen-3.8-coder",
+      "team/falsifier": "opencode-go/deepseek-v4-flash",
+      "team/synthesizer": "opencode-go/deepseek-v4-pro",
+      "team/scout": "opencode-go/grok-4.6",
+    },
+  },
+  {
+    name: "opencode-zen",
+    description: "OpenCode Zen — Pay-as-you-go curated gateway models (DeepSeek V4, Qwen 3.8, MiMo).",
+    agents: {
+      "team/crafter": "opencode/deepseek-v4-pro",
+      "team/sentinel": "opencode/deepseek-v4-pro",
+      "team/worker": "opencode/qwen-3.8-coder",
+      "team/proof-worker": "opencode/deepseek-v4-pro",
+      "team/verifier": "opencode/deepseek-v4-flash",
+      "team/orchestrator": "opencode/deepseek-v4-pro",
+      "team/proposer": "opencode/mimo-v2.5",
+      "team/falsifier": "opencode/deepseek-v4-flash",
+      "team/synthesizer": "opencode/deepseek-v4-pro",
+      "team/scout": "opencode/muse-spark-1.2-contributor",
+    },
+  },
+  {
     name: "anthropic",
     description: "All-Claude preset (Sonnet 4.5 across the board).",
     agents: {
@@ -138,7 +186,7 @@ const PRESETS: Preset[] = [
   },
   {
     name: "free",
-    description: "All free tier — best for trying it out without spending credits.",
+    description: "OpenRouter free tier (Llama 3.3 70B free).",
     agents: {
       "team/crafter": "openrouter/meta-llama/llama-3.3-70b-instruct:free",
       "team/sentinel": "openrouter/meta-llama/llama-3.3-70b-instruct:free",
@@ -285,15 +333,75 @@ async function pickPreset(): Promise<string | null> {
   return PRESETS[idx]!.name;
 }
 
+const ROLE_GUIDANCE: Record<string, { roleDesc: string; free: string; go: string }> = {
+  "team/crafter": {
+    roleDesc: "Phase-1 requirement elicitation & task specification",
+    free: "opencode/hy3 (256k ctx, deep analysis)",
+    go: "opencode-go/deepseek-v4-pro (SOTA reasoning)",
+  },
+  "team/sentinel": {
+    roleDesc: "Phase-2 DAG coordinator & iteration manager",
+    free: "opencode/hy3 (256k ctx, multi-file context)",
+    go: "opencode-go/kimi-k3 (high context reasoning)",
+  },
+  "team/worker": {
+    roleDesc: "Primary code implementer in isolated worktrees",
+    free: "opencode/mimo-v2.5 (128k ctx, fast code editing)",
+    go: "opencode-go/mimo-v2.5 (high throughput coding)",
+  },
+  "team/proof-worker": {
+    roleDesc: "Formal logic & mathematical theorem solver",
+    free: "opencode/hy3 (strong structured reasoning)",
+    go: "opencode-go/kimi-k3 (deep chain-of-thought)",
+  },
+  "team/verifier": {
+    roleDesc: "Objective verification judge & test suite runner",
+    free: "opencode/muse-spark-1.2-contributor (rapid audit)",
+    go: "opencode-go/deepseek-v4-flash (strict evaluation)",
+  },
+  "team/orchestrator": {
+    roleDesc: "v1 Loop coordinator (propose-falsify-synthesize)",
+    free: "opencode/hy3 (256k ctx, architectural overview)",
+    go: "opencode-go/kimi-k3 (large context coordinator)",
+  },
+  "team/proposer": {
+    roleDesc: "v1 Candidate solution generator",
+    free: "opencode/mimo-v2.5 (fast candidate generation)",
+    go: "opencode-go/qwen-3.8-coder (coding benchmark leader)",
+  },
+  "team/falsifier": {
+    roleDesc: "v1 Adversarial critic & bug hunter",
+    free: "opencode/mimo-v2.5 (critical evaluation)",
+    go: "opencode-go/deepseek-v4-flash (adversarial tester)",
+  },
+  "team/synthesizer": {
+    roleDesc: "v1 Candidate merger & conflict resolver",
+    free: "opencode/hy3 (reconciliation & clean merge)",
+    go: "opencode-go/deepseek-v4-pro (SOTA synthesis)",
+  },
+  "team/scout": {
+    roleDesc: "Read-only fast codebase context gatherer",
+    free: "opencode/muse-spark-1.2-contributor (lightning fast)",
+    go: "opencode-go/grok-4.6 (broad context exploration)",
+  },
+};
+
 /** Per-role model picker. Returns the model map. */
 async function pickPerRoleModels(): Promise<Record<string, string>> {
-  const defaults = PRESETS[0]!.agents; // anthropic defaults
+  const defaults = PRESETS[0]!.agents; // opencode-free defaults
   const out: Record<string, string> = {};
   console.log(`\n  Set the model for each role. Press Enter to use the default,`);
-  console.log(`  type a model id (e.g. "google/gemini-3-flash"), or 'q' to quit.\n`);
+  console.log(`  or enter any model ID (e.g. "opencode/hy3", "opencode-go/mimo-v2.5", "anthropic/claude-sonnet-4-5").`);
+  console.log(`  Type 'q' to quit.\n`);
   for (const role of ROLES) {
-    const def = defaults[role]!;
-    out[role] = await askText(`${role}`, { defaultValue: def });
+    const info = ROLE_GUIDANCE[role];
+    if (info) {
+      console.log(`\n  [${role}] — ${info.roleDesc}`);
+      console.log(`    • Suggested Free: ${info.free}`);
+      console.log(`    • Suggested Go:   ${info.go}`);
+    }
+    const def = defaults[role] ?? "opencode/hy3";
+    out[role] = await askText(`  Model for ${role}`, { defaultValue: def });
   }
   return out;
 }
@@ -400,10 +508,10 @@ async function cmdInstall(args: string[]): Promise<void> {
         agents = preset.agents;
       }
     } else {
-      // Non-interactive (CI, pipe, or --yes): default to anthropic.
+      // Non-interactive (CI, pipe, or --yes): default to opencode-free.
       const why = autoYes && !presetName
-        ? "(--yes flag set, defaulting to anthropic preset)"
-        : "(non-interactive: no TTY, defaulting to anthropic preset)";
+        ? `(--yes flag set, defaulting to ${PRESETS[0]!.name} preset)`
+        : `(non-interactive: no TTY, defaulting to ${PRESETS[0]!.name} preset)`;
       console.log(`\n  ${why}`);
       console.log(`  Override with --preset <name>.`);
       agents = PRESETS[0]!.agents;

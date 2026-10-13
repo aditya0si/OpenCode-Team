@@ -131,27 +131,32 @@ the original architecture's weakest point; the exit code is what closes it.
 
 ## Per-role model selection
 
-The installer ships 5 presets: `anthropic`, `team`, `google`,
-`openai`, `free`. The `team` preset mixes Opus (sentinel, crafter,
-orchestrator, proof-worker, synthesizer) with Sonnet (the rest).
-The `google` preset matches what Teamwork's actual research used
-(Flash + Pro 3.1, 71% on TCSBench).
+The installer ships 8 presets: `opencode-free` (zero cost using Hy3, MiMo 2.5, Spark Contributor), `opencode-go` ($10/mo curated DeepSeek V4 Pro, MiMo, Kimi K3, Flash), `opencode-zen`, `anthropic`, `team`, `google`, `openai`, `free`.
 
-Custom per-role with the `custom` picker at install time, or edit
-your `opencode.json` by hand later. There is no technical reason all
-10 agents have to be the same model.
+The `opencode-free` preset uses OpenCode's rotating free-tier models:
+- **`opencode/hy3`** (256k context): High architectural & deep reasoning for Sentinel, Crafter, Orchestrator, Synthesizer.
+- **`opencode/mimo-v2.5`** (128k context): High speed & precision for Worker, Proposer, Falsifier.
+- **`opencode/muse-spark-1.2-contributor`**: Rapid test runner & context gatherer for Verifier and Scout.
+
+The `team` preset mixes Opus (sentinel, crafter, orchestrator, proof-worker, synthesizer) with Sonnet (the rest).
+The `google` preset matches what Teamwork's actual research used (Flash + Pro 3.1, 71% on TCSBench).
+
+Custom per-role model selection is available via the `custom` picker at install time with live suggestions, or edit your `opencode.json` by hand later.
 
 ## Install
 
 ```bash
-bunx opencode-teamwork@latest install
-# or with a preset
-bunx opencode-teamwork@latest install --preset team
+# 1-command install (bunx or npx)
+npx opencode-teamwork@latest install
+
+# Or with a preset:
+npx opencode-teamwork@latest install --preset opencode-free
+npx opencode-teamwork@latest install --preset opencode-go
 ```
 
 The installer:
 1. Resolves `~/.config/opencode/opencode.json` (or `$OPENCODE_CONFIG_DIR/opencode.json`).
-2. Asks which preset (or `custom` for per-role).
+2. Asks which preset (or `custom` for per-role with recommendations).
 3. Writes the config, deep-merging with any existing settings.
 4. Adds the plugin to the `plugin` array.
 5. Tells you to run `opencode` and try `/teamwork "..."`.

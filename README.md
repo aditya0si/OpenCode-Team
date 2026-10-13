@@ -25,6 +25,9 @@ not "a model felt good about it".
 bunx opencode-teamwork@latest install
 # or
 npx opencode-teamwork@latest install
+
+# install with a preset up front (see Presets below)
+npx opencode-teamwork@latest install --preset opencode-free
 ```
 
 Then run `opencode` and try:
@@ -36,6 +39,24 @@ Then run `opencode` and try:
 /teamwork --topology long-proof --budget 30 "prove X"
 /teamwork --topology distributed-coding --concurrency 4 "migrate auth to JWT"
 ```
+
+## Presets
+
+The installer ships 8 presets — `opencode-free`, `opencode-go`, `opencode-zen`,
+`anthropic`, `team`, `google`, `openai`, `free` — or `custom` for per-role
+model selection with live recommendations. Non-interactive installs (`--yes`,
+CI, or no TTY) default to `opencode-free`.
+
+| Preset | Cost | Models | Best for |
+|---|---|---|---|
+| `opencode-free` | Free | `opencode/hy3` (planning roles), `opencode/mimo-v2.5` (coding roles), `opencode/muse-spark-1.2-contributor` (verifier, scout) | zero-cost orchestration out of the box |
+| `opencode-go` | $10/mo | `opencode-go/kimi-k3`, `opencode-go/deepseek-v4-pro`, `opencode-go/mimo-v2.5`, `opencode-go/qwen-3.8-coder`, `opencode-go/deepseek-v4-flash`, `opencode-go/grok-4.6` | curated high-throughput models |
+| `opencode-zen` | pay-as-you-go | `opencode/deepseek-v4-pro`, `opencode/deepseek-v4-flash`, `opencode/qwen-3.8-coder`, `opencode/mimo-v2.5`, `opencode/muse-spark-1.2-contributor` | curated gateway, pay per token |
+| `anthropic` | API key | Claude Sonnet 4.5 across all 10 roles | full Claude reasoning |
+| `team` | API key | Opus 4.5 (sentinel, proof-worker, orchestrator, synthesizer) + Sonnet 4.5 (the rest) + Haiku 4.5 (scout) | Opus coordinator + Sonnet workers |
+| `google` | API key | Gemini 3.1 Pro + Gemini 3 Flash | matches Teamwork's research setup |
+| `openai` | API key | GPT-5.2 + GPT-5-mini | GPT-5 power |
+| `free` | Free | `openrouter/meta-llama/llama-3.3-70b-instruct:free` (all roles) | trying it out without spending credits |
 
 ## What is enforced in code
 
